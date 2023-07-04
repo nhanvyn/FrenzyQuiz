@@ -1,13 +1,14 @@
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { SocketContext } from '../App';
 const Join = () => {
   const navigate = useNavigate();
   const [quizId, setQuizId] = useState('');
+  const socket = useContext(SocketContext)
 
 
 
   const goToQuizRoom = (quizId) => {
-    console.log("Go to lobby")
 
     // todo: check if the id exist
     navigate(`/Room/${quizId}`)
