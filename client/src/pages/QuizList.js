@@ -41,7 +41,6 @@ const QuizList = () => {
                 <p className="mb-1">CMPT372 quiz</p>
                 <button type="button" name="edit" className="btn btn-warning btn-sm mt-2">Edit</button>
                 <button type="button" name="start" className="btn btn-primary btn-sm mt-2 ml-2" onClick={() => goToQuizRoom(quiz.id)}>Start</button>
-
               </div>
             ))
           }
