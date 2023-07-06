@@ -4,6 +4,8 @@ import Home from './pages/Home';
 import Join from "./pages/Join";
 import QuizList from "./pages/QuizList";
 import Room from "./pages/Room";
+import Login from "./pages/Login"
+import Register from "./pages/Register"
 import io from "socket.io-client"
 
 import {
@@ -34,15 +36,12 @@ function App() {
             <Navbar />
 
             <Routes>
-
               <Route path="/" element={<Home />} />
               <Route path="/Join" element={<Join />} />
               <Route path="/QuizList" element={<QuizList />} />
               <Route path="/Room/:id" element={<Room />} />
-
-
-              {/* <Route path="/Login" element={<Login />} /> */}
-              {/* <Route path="/Register" element={<Register />} /> */}
+              <Route path="/Login" element={<Login />} />
+              <Route path="/Register" element={<Register />} />
 
             </Routes>
           </div>

@@ -17,8 +17,6 @@ const io = new Server(server, {
   }
 });
 
-
-
 const port = process.env.PORT || 3500;
 
 const pool = new Pool({

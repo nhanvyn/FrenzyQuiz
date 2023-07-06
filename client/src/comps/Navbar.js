@@ -21,12 +21,12 @@ const Navbar = () => {
               </NavLink>
             </li>
             <li className="nav-item">
-              <NavLink activeclassname="active" className="nav-link" to="/">
+              <NavLink activeclassname="active" className="nav-link" to="/Login">
                 Login
               </NavLink>
             </li>
             <li className="nav-item">
-              <NavLink activeclassname="active" className="nav-link" to="/">
+              <NavLink activeclassname="active" className="nav-link" to="/Register">
                 Register
               </NavLink>
             </li>
