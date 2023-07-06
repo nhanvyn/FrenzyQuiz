@@ -7,3 +7,5 @@ To run server
 
 cd server
 npm run dev
+
+test
