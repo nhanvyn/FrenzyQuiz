@@ -1,116 +1,186 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, {useState} from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { createUserWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
+import {auth} from '../firebase-config'
+
 
 function Register() {
+  const navigate = useNavigate();
+  const [email, setEmail] = useState("")
+  const [login, setLogin] = useState("")
+  const [name, setName] = useState("")
+  const [password, setPassword] = useState("")
+  const [role, setRole] = useState("student")
+
+  // const [user, setUser] = useState({});
+
+  // onAuthStateChanged(auth, (currentUser) => {
+  //   console.log(user)
+  //   setUser(currentUser)
+  // })
+
+  const handleRoleChange = (event) => {
+    setRole(event.target.value);
+  };
+
+
+  const handleNameChange = (event) => {
+    setName(event.target.value);
+
+  };
+
+  const handleEmailChange = (event) => {
+    setEmail(event.target.value);
+  };
+
+  const handlePasswordChange = (event) => {
+    setPassword(event.target.value);
+  };
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    console.log(role + " " + name + " " + email + " " + password);
+
+    const firebase_register = async () => {
+      try {
+        const user = await createUserWithEmailAndPassword(auth, email, password )
+        console.log(user)
+
+        // to do: after firebase register is done, it will return user information,
+        // make a request to /register in server to save user's name, role, id to postgres
+        navigate('/')
+        
+      } catch(error) {
+        console.log(error.message)
+      }
+    }
+
+    firebase_register()
+  }
+
+ 
   return (
-    <section class="vh-100 bg-image">
-      <div class="mask d-flex align-items-center h-100 gradient-custom-3">
-        <div class="container h-100">
-          <div class="row d-flex justify-content-center align-items-center h-100">
-            <div class="col-12 col-md-9 col-lg-7 col-xl-6">
-              <div class="card">
-                <div class="card-body p-5">
-                  <h2 class="text-uppercase text-center mb-5">
-                    Create an account
+    <section className="vh-100 bg-image">
+      <div className="mask d-flex align-items-center h-100 gradient-custom-3">
+        <div className="container h-100">
+          <div className="row d-flex justify-content-center align-items-center h-100">
+            <div className="col-12 col-md-9 col-lg-7 col-xl-6">
+              <div className="card">
+                <div className="card-body p-5">
+                  <h2 className="text-uppercase text-center mb-5">
+                    Create an account: 
                   </h2>
 
-                  <form>
-                    <div class="form-check mb-4">
+                  <form onSubmit={handleSubmit}>
+                    <div className="form-check mb-4">
                       <input
-                        class="form-check-input"
+                        className="form-check-input"
                         type="radio"
                         name="flexRadioDefault"
                         id="flexRadioDefault1"
                         defaultChecked
+                        value="student"
+                        onChange={handleRoleChange}
                       />
-                      <label class="form-check-label" for="flexRadioDefault1">
+                      <label className="form-check-label" htmlFor="flexRadioDefault1">
                         Student
                       </label>
 
                       <input
-                        class="form-check-input ml-2 m-1"
+                        className="form-check-input ml-2 m-1"
                         type="radio"
                         name="flexRadioDefault"
                         id="flexRadioDefault2"
+                        value="instructor"
+                        onChange={handleRoleChange}
                       />
-                      <label class="form-check-label pl-4" for="flexRadioDefault2">
+                      <label className="form-check-label pl-4" htmlFor="flexRadioDefault2">
                         Instructor
                       </label>
                     </div>
 
               
 
-                    <div class="form-outline mb-4">
+                    <div className="form-outline mb-4">
                       <input
                         type="text"
                         id="form3Example1cg"
-                        class="form-control form-control-lg"
+                        className="form-control form-control-lg"
+                        value={name}
+                        onChange={handleNameChange}
+                        required
                       />
-                      <label class="form-label" for="form3Example1cg">
+                      <label className="form-label" htmlFor="form3Example1cg">
                         Your Name
                       </label>
                     </div>
 
-                    <div class="form-outline mb-4">
+                    <div className="form-outline mb-4">
                       <input
                         type="email"
                         id="form3Example3cg"
-                        class="form-control form-control-lg"
+                        className="form-control form-control-lg"
+                        value={email}
+                        onChange={handleEmailChange}
+                        required
                       />
-                      <label class="form-label" for="form3Example3cg">
+                      <label className="form-label" htmlFor="form3Example3cg">
                         Your Email
                       </label>
                     </div>
 
-                    <div class="form-outline mb-4">
+                    <div className="form-outline mb-4">
                       <input
                         type="password"
                         id="form3Example4cg"
-                        class="form-control form-control-lg"
+                        className="form-control form-control-lg"
+                        value={password}
+                        onChange={handlePasswordChange}
+                        required
                       />
-                      <label class="form-label" for="form3Example4cg">
+                      <label className="form-label" htmlFor="form3Example4cg">
                         Password
                       </label>
                     </div>
 
-                    <div class="form-outline mb-4">
+                    {/* <div className="form-outline mb-4">
                       <input
                         type="password"
                         id="form3Example4cdg"
-                        class="form-control form-control-lg"
+                        className="form-control form-control-lg"
                       />
-                      <label class="form-label" for="form3Example4cdg">
+                      <label className="form-label" htmlFor="form3Example4cdg">
                         Repeat your password
                       </label>
-                    </div>
+                    </div> */}
 
-                    <div class="form-check d-flex justify-content-center mb-5">
+                    {/* <div className="form-check d-flex justify-content-center mb-5">
                       <input
-                        class="mr-2 mt-1"
+                        className="mr-2 mt-1"
                         type="checkbox"
-                        value=""
+                   
                         id="form2Example3cg"
                       />
-                      <label class="form-check-label" for="form2Example3g">
+                      <label className="form-check-label" htmlFor="form2Example3g">
                         I agree all statements in{" "}
-                        <a href="#!" class="text-body">
+                        <a href="#!" className="text-body">
                           <u>Terms of service</u>
                         </a>
                       </label>
-                    </div>
+                    </div> */}
 
-                    <div class="d-flex justify-content-center">
+                    <div className="d-flex justify-content-center">
                       <button
-                        type="button"
-                        class="btn btn-success btn-block btn-lg gradient-custom-4 text-body"
+                        type="submit"
+                        className="btn btn-success btn-block btn-lg gradient-custom-4 text-body"
                       >
                         Register
                       </button>
                     </div>
 
-                    <p class="text-center text-muted mt-5 mb-0">
+                    <p className="text-center text-muted mt-5 mb-0">
                       Have already an account?{" "}
-                      <Link to="/login" class="fw-bold text-body">
+                      <Link to="/login" className="fw-bold text-body">
                         <u>Login here</u>
                       </Link>
                     </p>
