@@ -46,8 +46,8 @@ function Register() {
         const user = await createUserWithEmailAndPassword(auth, email, password )
         console.log(user)
 
-        // to do: after firebase register is done, it will return user information,
-        // make a request to /register in server to save user's name, role, id to postgres
+        // after firebase register is done, it will return user information in user variable
+        // todo: extract firebase user id and make a request to /register in server to save user's name, role, firebase user id to postgres
         navigate('/')
         
       } catch(error) {
