@@ -1,4 +1,3 @@
-
 const { Pool } = require('pg');
 const dotenv = require('dotenv');
 const express = require('express');
@@ -69,9 +68,9 @@ io.on("connection", (socket) => {
     if (rooms[data.quizId]) {
       rooms[data.quizId] = rooms[data.quizId].filter(player => player.connect_id !== socket.id)
     }
-    
+
     // disconnect player from this room
-    socket.leave(data.quizId) 
+    socket.leave(data.quizId)
 
     // update new player list
     io.in(data.quizId).emit("display_new_player", rooms[data.quizId])
@@ -83,7 +82,12 @@ app.get('/', (req, res) => {
   res.send('Hello World!')
 });
 
-//register
+
+app.get('/protected', (req, res) => {
+  res.send('Hello!')
+})
+
+
 
 server.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`)

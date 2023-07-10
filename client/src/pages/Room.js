@@ -49,16 +49,22 @@ const Room = () => {
 
 
   return (
-    <div>
-      <h3>Quiz id: {id}</h3>
-      <QRCode value={`http://localhost:3000/Room/${id}`} />
+    <div className="container">
+      <div className="row">
+        <div className="col-lg-6 col-md-12">
+          <h3>Quiz id: {id}</h3>
+          <QRCode value={`http://localhost:3000/Room/${id}`} size={256*2} />
+        </div>
 
-      <h3>Wait for player to join...</h3>
-      <ul>
-        {players.map((player, index) => (
-          <li key={index}>{"username: " + player.username + " - connect id: " + player.connect_id}</li>
-        ))}
-      </ul>
+        <div className="col-lg-6 col-md-12">
+          <h3>Wait for player to join...</h3>
+          <ul>
+            {players.map((player, index) => (
+              <li key={index}>{"username: " + player.username + " - connect id: " + player.connect_id}</li>
+            ))}
+          </ul>
+        </div>
+      </div>
     </div>
   );
 }

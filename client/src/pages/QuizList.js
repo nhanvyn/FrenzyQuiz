@@ -25,6 +25,7 @@ const QuizList = () => {
   return (
     <div className='app'>
       <div className="container w-75">
+        <h3 className='textcenter'>Created Quizzes:</h3>
         <div className="list-group">
           {
             quizzes.map((quiz, index) => (
