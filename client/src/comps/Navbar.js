@@ -1,6 +1,15 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { Link, NavLink } from "react-router-dom";
+import { UserContext } from '../App';
+import { signOut } from 'firebase/auth';
+import { auth } from '../firebase-config';
 const Navbar = () => {
+  const user = useContext(UserContext)
+
+  const handleLogout = async () => {
+    await signOut(auth)
+  }
+
   return (
     <>
       <nav className="navbar navbar-expand-lg navbar-light bg-light">
@@ -10,6 +19,15 @@ const Navbar = () => {
         </button>
         <div className="collapse navbar-collapse justify-content-end" id="navbarNav">
           <ul className="navbar-nav">
+            {user && (
+              <li className="nav-item">
+                <NavLink activeclassname="active" className="nav-link">
+                  Welcome, {user?.email}
+                </NavLink>
+              </li>
+            )}
+
+
             <li className="nav-item">
               <NavLink activeclassname="active" className="nav-link" to="/Join">
                 Join
@@ -20,16 +38,30 @@ const Navbar = () => {
                 QuizList
               </NavLink>
             </li>
-            <li className="nav-item">
-              <NavLink activeclassname="active" className="nav-link" to="/Login">
-                Login
-              </NavLink>
-            </li>
-            <li className="nav-item">
-              <NavLink activeclassname="active" className="nav-link" to="/Register">
-                Register
-              </NavLink>
-            </li>
+            {!user && (
+              <li className="nav-item">
+                <NavLink activeclassname="active" className="nav-link" to="/Login">
+                  Login
+                </NavLink>
+              </li>
+            )}
+            
+            {!user && (
+              <li className="nav-item">
+                <NavLink activeclassname="active" className="nav-link" to="/Register">
+                  Register
+                </NavLink>
+              </li>
+            )}
+              
+            {user && (
+              <li className="nav-item">
+                <NavLink activeclassname="active" className="nav-link" to="/Register" onClick={handleLogout}>
+                  LogOut
+                </NavLink>
+              </li>
+            )}
+          
          
         
           </ul>

@@ -9,6 +9,8 @@ import Register from "./pages/Register"
 import StudentQuizList from "./pages/StudentQuizList";
 import StudentQuizDetail from "./pages/StudentQuizDetail";
 import io from "socket.io-client"
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from './firebase-config'
 
 import {
   BrowserRouter,
@@ -17,11 +19,21 @@ import {
   Link
 } from "react-router-dom";
 
+
 export const SocketContext = createContext();
+export const UserContext = createContext({});
+
 
 function App() {
 
   const [socket, setSocket] = useState(null)
+  const [user, setUser] = useState({});
+
+  onAuthStateChanged(auth, (currentUser) => {
+    console.log("currentuser = ", user)
+    setUser(currentUser)
+  })
+  
   useEffect(() => {
     if (!socket){
       const newSocket = io.connect("http://localhost:3500")
@@ -31,6 +43,7 @@ function App() {
 
   return (
     <>
+      <UserContext.Provider value={user}>
       <SocketContext.Provider value={socket}>
         <BrowserRouter>
 
@@ -50,6 +63,7 @@ function App() {
           </div>
         </BrowserRouter>
       </SocketContext.Provider>
+      </UserContext.Provider>
     </>
   );
 }
