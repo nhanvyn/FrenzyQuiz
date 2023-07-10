@@ -6,9 +6,12 @@ import QuizList from "./pages/QuizList";
 import Room from "./pages/Room";
 import Login from "./pages/Login"
 import Register from "./pages/Register"
+import StudentQuizList from "./pages/StudentQuizList";
+import StudentQuizDetail from "./pages/StudentQuizDetail";
 import io from "socket.io-client"
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from './firebase-config'
+import CreateQ from "./pages/CreateQ";
 
 import {
   BrowserRouter,
@@ -16,7 +19,6 @@ import {
   Route,
   Link
 } from "react-router-dom";
-import CreateQ from "./pages/CreateQ";
 
 
 export const SocketContext = createContext();
@@ -56,7 +58,10 @@ function App() {
               <Route path="/Room/:id" element={<Room />} />
               <Route path="/Login" element={<Login />} />
               <Route path="/Register" element={<Register />} />
+              <Route path="/StudentQuizList" element={<StudentQuizList />} />
+              <Route path="/StudentQuizDetail/:id" element={<StudentQuizDetail />} />
               <Route path="/Create" element={<CreateQ />} />
+
             </Routes>
           </div>
         </BrowserRouter>

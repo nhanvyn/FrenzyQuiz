@@ -24,7 +24,13 @@ const pool = new Pool({
   database: process.env.DB_DATABASE,
   password: process.env.DB_PASSWORD,
 })
-
+// const pool = new Pool ({
+//   user: "postgres",
+//   host: "34.28.208.104",
+//   port: "5432",
+//   database: "postgres",
+//   password: "frenzyquizdb@372"
+// })
 
 pool.connect(err => {
   if (err) {
@@ -69,8 +75,6 @@ io.on("connection", (socket) => {
     // update new player list
     io.in(data.quizId).emit("display_new_player", rooms[data.quizId])
   })
-
-
 })
 
 
@@ -87,4 +91,5 @@ app.get('/protected', (req, res) => {
 
 server.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`)
+  console.log(process.env.DB_USER)
 });
