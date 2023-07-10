@@ -6,6 +6,8 @@ import QuizList from "./pages/QuizList";
 import Room from "./pages/Room";
 import Login from "./pages/Login"
 import Register from "./pages/Register"
+import StudentQuizList from "./pages/StudentQuizList";
+import StudentQuizDetail from "./pages/StudentQuizDetail";
 import io from "socket.io-client"
 
 import {
@@ -42,7 +44,8 @@ function App() {
               <Route path="/Room/:id" element={<Room />} />
               <Route path="/Login" element={<Login />} />
               <Route path="/Register" element={<Register />} />
-
+              <Route path="/StudentQuizList" element={<StudentQuizList />} />
+              <Route path="/StudentQuizDetail/:id" element={<StudentQuizDetail />} />
             </Routes>
           </div>
         </BrowserRouter>
