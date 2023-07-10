@@ -16,6 +16,7 @@ import {
   Route,
   Link
 } from "react-router-dom";
+import CreateQ from "./pages/CreateQ";
 
 
 export const SocketContext = createContext();
@@ -55,7 +56,7 @@ function App() {
               <Route path="/Room/:id" element={<Room />} />
               <Route path="/Login" element={<Login />} />
               <Route path="/Register" element={<Register />} />
-
+              <Route path="/Create" element={<CreateQ />} />
             </Routes>
           </div>
         </BrowserRouter>
