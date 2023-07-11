@@ -81,14 +81,16 @@ io.on("connection", (socket) => {
         quiz: quiz
       }
     }
-    // todo: handle the case where user join with different connection with same email and their previous connection has not shutdown => need to shutdown the previous connection and replace the connect_id with new connection. this happen when user close the browser but the connection still lives
 
     // check if user already exists in the room
-    const existingPlayer = rooms[data.quizId].players.find(player => player.email === data.email)
+    const existingPlayerIndex = rooms[data.quizId].players.findIndex(player => player.email === data.email)
 
     // If user doesn't exist in the room, add them
-    if (!existingPlayer) {
+    if (existingPlayerIndex === -1) {
       rooms[data.quizId].players.push({ email: data.email, connect_id: socket.id });
+    } else {
+      // this is where player reconnect with different socket.id -> modify their previous id with new socket id
+      rooms[data.quizId].players[existingPlayerIndex] = { email: data.email, connect_id: socket.id }
     }
 
     // send a list of updated players to all players 
@@ -139,8 +141,6 @@ io.on("connection", (socket) => {
       })
     }
     delete rooms[data.quizId]
-
-
   })
 })
 
@@ -153,6 +153,7 @@ app.get('/', (req, res) => {
 app.get('/protected', (req, res) => {
   res.send('Hello!')
 })
+
 
 //post route
 app.post("/register", async (req, res) => {
