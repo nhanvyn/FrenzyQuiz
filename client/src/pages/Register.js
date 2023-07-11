@@ -5,58 +5,52 @@ import {
   onAuthStateChanged,
 } from "firebase/auth";
 import { auth } from "../firebase-config";
-import uuid from "react-uuid";
 
 function Register() {
   const navigate = useNavigate();
-  const [uId, setUId] = useState(uuid);
+  //const [uId, setUId] = useState("");
   const [email, setEmail] = useState("");
   const [fname, setfname] = useState("");
   const [lname, setlname] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("student");
 
-  // const [user, setUser] = useState({});
-
-  // onAuthStateChanged(auth, (currentUser) => {
-  //   console.log(user)
-  //   setUser(currentUser)
-  // })
-
   const handleSubmit = async (event) => {
     event.preventDefault();
-    console.log(
-      role + " " + fname + " " + lname + " " + email + " " + password + " " + uId
-    );
-      var temp;
-    const firebase_register = async () => {
-      try {
-        const user = await createUserWithEmailAndPassword(
-          auth,
-          email,
-          password
-        )
-        // after firebase register is done,
-        // it will return user information in user variable
-        // todo: extract firebase user id and
-        //make a request to /register in server
-        //to save user's name, role, firebase user id to postgres
-        navigate("/");
-      } catch (error) {
-        console.error(error.message);
-      }
-    };
+
     firebase_register();
+    setTimeout(10000);
+    console.log(
+      role + " " + fname + " " + lname + " " + email + " " + password + " "
+      //uId
+    );
+  };
+  const firebase_register = async () => {
+    try {
+      const user = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      ).then((userCredential) => {
+        //setUId(userCredential.user.uid);
+        const regBody = {
+          userid: userCredential.user.uid,
+          userEmail: email,
+          userPassword: password,
+          userFname: fname,
+          userLname: lname,
+          userRole: role,
+        };
+        postRequestSubmit(regBody);
+      });
+      navigate("/");
+    } catch (error) {
+      console.error(error.message);
+    }
+  };
+
+  const postRequestSubmit = async (regBody) => {
     //fetch post request
-    const regBody = {
-      userid: uId,
-      userEmail: email,
-      userPassword: password,
-      userFname: fname,
-      userLname: lname,
-      userRole: role,
-    };
-    console.log(regBody);
     try {
       const response = await fetch("http://localhost:3500/register", {
         method: "POST",
