@@ -8,7 +8,6 @@ import { auth } from "../firebase-config";
 
 function Register() {
   const navigate = useNavigate();
-  //const [uId, setUId] = useState("");
   const [email, setEmail] = useState("");
   const [fname, setfname] = useState("");
   const [lname, setlname] = useState("");

@@ -40,10 +40,6 @@ pool.connect((err) => {
   }
 });
 
-
-
-
-
 const quizzes = [
   {
     id: "123",
@@ -71,7 +67,7 @@ io.on("connection", (socket) => {
 
   socket.on("join_room", (data) => {
     console.log(`User: ${data.email} connect_id: ${socket.id} joined room ${data.quizId}`);
-    // attach player's socket connection to this room 
+    // attach player's socket connection to this room
     socket.join(data.quizId)
 
     // if this is the first time the room is created, init empty players array and attach quiz data to this room
@@ -94,10 +90,10 @@ io.on("connection", (socket) => {
       rooms[data.quizId].players[existingPlayerIndex] = { email: data.email, connect_id: socket.id }
     }
 
-    // send a list of updated players to all players 
+    // send a list of updated players to all players
     io.in(data.quizId).emit("display_new_player", rooms[data.quizId].players)
 
-    //send quiz data to all players 
+    //send quiz data to all players
     io.in(data.quizId).emit("update_quiz", rooms[data.quizId].quiz)
   })
 
@@ -115,7 +111,7 @@ io.on("connection", (socket) => {
     io.in(data.quizId).emit("display_new_player", rooms[data.quizId]);
   });
 
-  // homepage use this to find current room 
+  // homepage use this to find current room
   socket.on('find_current_room', (data) => {
     let roomData = null;
     for (let quizId in rooms) {
@@ -132,7 +128,7 @@ io.on("connection", (socket) => {
   // when the host click on delete room button
   socket.on('delete_room', (data) => {
     if (rooms[data.quizId].players) {
-      // notify every one that this room is deleted 
+      // notify every one that this room is deleted
       io.in(data.quizId).emit("room_deleted");
       // remove all players from this room
       rooms[data.quizId].players.forEach(player => {
@@ -160,7 +156,9 @@ app.get('/protected', (req, res) => {
 })
 
 
-//post route
+//post routes
+
+//register route
 app.post("/register", async (req, res) => {
   const uid = req.body.userid;
   const password = req.body.userPassword;
@@ -178,11 +176,15 @@ app.post("/register", async (req, res) => {
     console.error(err.message);
   }
 });
+
+//login route
+
+
 app.post("/createQuiz", async (req, res) => {
   try {
     const result = await pool.query(
-      `INSERT INTO 
-    quizzes (tname,mid, sid,tfid,created) 
+      `INSERT INTO
+    quizzes (tname,mid, sid,tfid,created)
     VALUES ($1,NULL,NULL,NULL, CURRENT_TIMESTAMP) RETURNING *`,
       [req.body.name]
     );
