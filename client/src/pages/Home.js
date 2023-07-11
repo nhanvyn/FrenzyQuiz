@@ -16,8 +16,15 @@ const HomePage = () => {
         console.log("current room data:", roomData)
         setCurrentRoom(roomData)
       })
+      
+      socket.on("room_deleted", (data) => {
+        console.log("this room is deleted")
+        setCurrentRoom(null)
+      });
+
       return () => {
         socket.off('current_room_found')
+        socket.off('room_deleted')
       }
     }
   }, [socket, user])

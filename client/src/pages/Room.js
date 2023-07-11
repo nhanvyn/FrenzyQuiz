@@ -51,8 +51,6 @@ const Room = () => {
       const handleRoomDeleted = (data) => {
         console.log("this room is deleted")
         navigate(`/`)
-
-
       }
 
       socket.on("display_new_player", handleDisplayPlayer);
