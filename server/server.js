@@ -1,8 +1,8 @@
-const { Pool } = require('pg');
-const dotenv = require('dotenv');
-const express = require('express');
+const { Pool } = require("pg");
+const dotenv = require("dotenv");
+const express = require("express");
 const http = require("http");
-const { Server } = require('socket.io');
+const { Server } = require("socket.io");
 const cors = require("cors");
 const app = express();
 dotenv.config();
@@ -12,8 +12,8 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000"
-  }
+    origin: "http://localhost:3000",
+  },
 });
 
 const port = process.env.PORT || 3500;
@@ -23,7 +23,7 @@ const pool = new Pool({
   host: process.env.DB_HOST,
   database: process.env.DB_DATABASE,
   password: process.env.DB_PASSWORD,
-})
+});
 // const pool = new Pool ({
 //   user: "postgres",
 //   host: "34.28.208.104",
@@ -32,11 +32,11 @@ const pool = new Pool({
 //   password: "frenzyquizdb@372"
 // })
 
-pool.connect(err => {
+pool.connect((err) => {
   if (err) {
-    console.error('connection error', err.stack);
+    console.error("connection error", err.stack);
   } else {
-    console.log('db connected');
+    console.log("db connected");
   }
 });
 
@@ -154,9 +154,28 @@ app.get('/protected', (req, res) => {
   res.send('Hello!')
 })
 
+//post route
+app.post("/register", async (req, res) => {
+  const uid = req.body.userid;
+  const password = req.body.userPassword;
+  const email = req.body.userEmail;
+  const fname = req.body.userFname;
+  const lname = req.body.userLname;
+  const role = req.body.userRole;
+  const info = [uid, role, fname, lname, email, password];
+  console.log(info);
+  try {
+    const registerQuery = "INSERT INTO users VALUES ($1, $2, $3, $4, $5, $6);";
+    const result = await pool.query(registerQuery, info);
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error(err.message);
+  }
+});
+
 
 
 server.listen(port, () => {
-  console.log(`Server is running at http://localhost:${port}`)
-  console.log(process.env.DB_USER)
+  console.log(`Server is running at http://localhost:${port}`);
+  console.log(process.env.DB_USER);
 });

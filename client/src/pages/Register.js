@@ -1,16 +1,20 @@
-import React, {useState} from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { createUserWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
-import {auth} from '../firebase-config'
-
+import {
+  createUserWithEmailAndPassword,
+  onAuthStateChanged,
+} from "firebase/auth";
+import { auth } from "../firebase-config";
+import uuid from "react-uuid";
 
 function Register() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("")
-  const [login, setLogin] = useState("")
-  const [name, setName] = useState("")
-  const [password, setPassword] = useState("")
-  const [role, setRole] = useState("student")
+  const [uId, setUId] = useState(uuid);
+  const [email, setEmail] = useState("");
+  const [fname, setfname] = useState("");
+  const [lname, setlname] = useState("");
+  const [password, setPassword] = useState("");
+  const [role, setRole] = useState("student");
 
   // const [user, setUser] = useState({});
 
@@ -19,46 +23,52 @@ function Register() {
   //   setUser(currentUser)
   // })
 
-  const handleRoleChange = (event) => {
-    setRole(event.target.value);
-  };
-
-
-  const handleNameChange = (event) => {
-    setName(event.target.value);
-
-  };
-
-  const handleEmailChange = (event) => {
-    setEmail(event.target.value);
-  };
-
-  const handlePasswordChange = (event) => {
-    setPassword(event.target.value);
-  };
-
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    console.log(role + " " + name + " " + email + " " + password);
-
+    console.log(
+      role + " " + fname + " " + lname + " " + email + " " + password + " " + uId
+    );
+      var temp;
     const firebase_register = async () => {
       try {
-        const user = await createUserWithEmailAndPassword(auth, email, password )
-        console.log(user)
-
-        // after firebase register is done, it will return user information in user variable
-        // todo: extract firebase user id and make a request to /register in server to save user's name, role, firebase user id to postgres
-        navigate('/')
-        
-      } catch(error) {
-        console.log(error.message)
+        const user = await createUserWithEmailAndPassword(
+          auth,
+          email,
+          password
+        )
+        // after firebase register is done,
+        // it will return user information in user variable
+        // todo: extract firebase user id and
+        //make a request to /register in server
+        //to save user's name, role, firebase user id to postgres
+        navigate("/");
+      } catch (error) {
+        console.error(error.message);
       }
+    };
+    firebase_register();
+    //fetch post request
+    const regBody = {
+      userid: uId,
+      userEmail: email,
+      userPassword: password,
+      userFname: fname,
+      userLname: lname,
+      userRole: role,
+    };
+    console.log(regBody);
+    try {
+      const response = await fetch("http://localhost:3500/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(regBody),
+      });
+      console.log(response);
+    } catch (err) {
+      console.error(err.message);
     }
+  };
 
-    firebase_register()
-  }
-
- 
   return (
     <section className="vh-100 bg-image">
       <div className="mask d-flex align-items-center h-100 gradient-custom-3">
@@ -68,9 +78,8 @@ function Register() {
               <div className="card">
                 <div className="card-body p-5">
                   <h2 className="text-uppercase text-center mb-5">
-                    Create an account: 
+                    Create an account:
                   </h2>
-
                   <form onSubmit={handleSubmit}>
                     <div className="form-check mb-4">
                       <input
@@ -80,9 +89,12 @@ function Register() {
                         id="flexRadioDefault1"
                         defaultChecked
                         value="student"
-                        onChange={handleRoleChange}
+                        onChange={(e) => setRole(e.target.value)}
                       />
-                      <label className="form-check-label" htmlFor="flexRadioDefault1">
+                      <label
+                        className="form-check-label"
+                        htmlFor="flexRadioDefault1"
+                      >
                         Student
                       </label>
 
@@ -92,83 +104,67 @@ function Register() {
                         name="flexRadioDefault"
                         id="flexRadioDefault2"
                         value="instructor"
-                        onChange={handleRoleChange}
+                        onChange={(e) => setRole(e.target.value)}
                       />
-                      <label className="form-check-label pl-4" htmlFor="flexRadioDefault2">
+                      <label
+                        className="form-check-label pl-4"
+                        htmlFor="flexRadioDefault2"
+                      >
                         Instructor
                       </label>
                     </div>
-
-              
-
                     <div className="form-outline mb-4">
                       <input
                         type="text"
                         id="form3Example1cg"
                         className="form-control form-control-lg"
-                        value={name}
-                        onChange={handleNameChange}
+                        value={fname}
+                        onChange={(e) => setfname(e.target.value)}
                         required
                       />
                       <label className="form-label" htmlFor="form3Example1cg">
-                        Your Name
+                        Your First Name
+                      </label>
+                    </div>{" "}
+                    <div className="form-outline mb-4">
+                      <input
+                        type="text"
+                        id="form3Example1cg"
+                        className="form-control form-control-lg"
+                        value={lname}
+                        onChange={(e) => setlname(e.target.value)}
+                        required
+                      />
+                      <label className="form-label" htmlFor="form3Example1cg">
+                        Your Last Name
                       </label>
                     </div>
-
                     <div className="form-outline mb-4">
                       <input
                         type="email"
                         id="form3Example3cg"
                         className="form-control form-control-lg"
                         value={email}
-                        onChange={handleEmailChange}
+                        onChange={(e) => setEmail(e.target.value)}
                         required
                       />
                       <label className="form-label" htmlFor="form3Example3cg">
                         Your Email
                       </label>
                     </div>
-
                     <div className="form-outline mb-4">
                       <input
                         type="password"
                         id="form3Example4cg"
                         className="form-control form-control-lg"
                         value={password}
-                        onChange={handlePasswordChange}
+                        onChange={(e) => setPassword(e.target.value)}
                         required
                       />
                       <label className="form-label" htmlFor="form3Example4cg">
                         Password
                       </label>
                     </div>
-
-                    {/* <div className="form-outline mb-4">
-                      <input
-                        type="password"
-                        id="form3Example4cdg"
-                        className="form-control form-control-lg"
-                      />
-                      <label className="form-label" htmlFor="form3Example4cdg">
-                        Repeat your password
-                      </label>
-                    </div> */}
-
-                    {/* <div className="form-check d-flex justify-content-center mb-5">
-                      <input
-                        className="mr-2 mt-1"
-                        type="checkbox"
-                   
-                        id="form2Example3cg"
-                      />
-                      <label className="form-check-label" htmlFor="form2Example3g">
-                        I agree all statements in{" "}
-                        <a href="#!" className="text-body">
-                          <u>Terms of service</u>
-                        </a>
-                      </label>
-                    </div> */}
-
                     <div className="d-flex justify-content-center">
                       <button
                         type="submit"
@@ -177,7 +173,6 @@ function Register() {
                         Register
                       </button>
                     </div>
-
                     <p className="text-center text-muted mt-5 mb-0">
                       Have already an account?{" "}
                       <Link to="/login" className="fw-bold text-body">
