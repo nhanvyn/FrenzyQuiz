@@ -42,8 +42,7 @@ pool.connect((err) => {
 
 
 
-<<<<<<< HEAD
-=======
+
 
 const quizzes = [
   {
@@ -67,7 +66,6 @@ const quizzes = [
 
 let rooms = {}
 
->>>>>>> a4d7f122a1627689911391674df94ff5a9c53d35
 io.on("connection", (socket) => {
   console.log(`User Connected: ${socket.id}`)
 
@@ -114,13 +112,10 @@ io.on("connection", (socket) => {
     socket.leave(data.quizId)
 
     // update new player list
-<<<<<<< HEAD
     io.in(data.quizId).emit("display_new_player", rooms[data.quizId]);
   });
 });
-=======
-    io.in(data.quizId).emit("display_new_player", rooms[data.quizId].players)
-  })
+
 
   socket.on('find_current_room', (data) => {
     let roomData = null;
@@ -150,7 +145,7 @@ io.on("connection", (socket) => {
     }
     delete rooms[data.quizId]
   })
-})
+
 
 
 app.get('/', (req, res) => {
