@@ -26,10 +26,17 @@ function App() {
   const [user, setUser] = useState({});
 
   onAuthStateChanged(auth, (currentUser) => {
+<<<<<<< HEAD
     setUser(currentUser);
     console.log("currentuser = ", user);
   });
 
+=======
+    setUser(currentUser)
+    console.log("currentuser = ", user)
+  })
+ 
+>>>>>>> a4d7f122a1627689911391674df94ff5a9c53d35
   useEffect(() => {
     if (!socket) {
       const newSocket = io.connect("http://localhost:3500");
