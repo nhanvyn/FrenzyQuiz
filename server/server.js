@@ -1,8 +1,8 @@
-const { Pool } = require('pg');
-const dotenv = require('dotenv');
-const express = require('express');
+const { Pool } = require("pg");
+const dotenv = require("dotenv");
+const express = require("express");
 const http = require("http");
-const { Server } = require('socket.io');
+const { Server } = require("socket.io");
 const cors = require("cors");
 const app = express();
 dotenv.config();
@@ -12,8 +12,8 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000"
-  }
+    origin: "http://localhost:3000",
+  },
 });
 
 const port = process.env.PORT || 3500;
@@ -23,7 +23,7 @@ const pool = new Pool({
   host: process.env.DB_HOST,
   database: process.env.DB_DATABASE,
   password: process.env.DB_PASSWORD,
-})
+});
 // const pool = new Pool ({
 //   user: "postgres",
 //   host: "34.28.208.104",
@@ -32,64 +32,87 @@ const pool = new Pool({
 //   password: "frenzyquizdb@372"
 // })
 
-pool.connect(err => {
+pool.connect((err) => {
   if (err) {
-    console.error('connection error', err.stack);
+    console.error("connection error", err.stack);
   } else {
-    console.log('db connected');
+    console.log("db connected");
+  }
+});
+
+let rooms = {};
+
+//middleware
+app.use(cors());
+app.use(express.json());
+
+
+io.on("connection", (socket) => {
+  console.log(`User Connected: ${socket.id}`);
+
+  socket.on("join_room", (data) => {
+    console.log(
+      `User: ${data.username} connect_id: ${socket.id} joined room ${data.quizId}`
+    );
+    // attach player's socket connection to this room
+    socket.join(data.quizId);
+
+    // push the new player to the room where they joined
+    if (!rooms[data.quizId]) {
+      rooms[data.quizId] = [];
+    }
+    rooms[data.quizId].push({ username: data.username, connect_id: socket.id });
+
+    // send a list of updated players to all players
+    io.in(data.quizId).emit("display_new_player", rooms[data.quizId]);
+  });
+
+  socket.on("leave_room", (data) => {
+    // remove player from the room
+    if (rooms[data.quizId]) {
+      rooms[data.quizId] = rooms[data.quizId].filter(
+        (player) => player.connect_id !== socket.id
+      );
+    }
+
+    // disconnect player from this room
+    socket.leave(data.quizId);
+
+    // update new player list
+    io.in(data.quizId).emit("display_new_player", rooms[data.quizId]);
+  });
+}); 
+
+app.get("/", (req, res) => {
+  res.send("Hello World!");
+});
+
+app.get("/protected", (req, res) => {
+  res.send("Hello!");
+});
+
+//post route
+app.post("/register", async (req, res) => {
+  const uid = req.body.userid;
+  const password = req.body.userPassword;
+  const email = req.body.userEmail;
+  const fname = req.body.userFname;
+  const lname = req.body.userLname;
+  const role = req.body.userRole;
+  const info = [uid, role, fname, lname, email, password];
+  console.log(info);
+  try {
+    const registerQuery = "INSERT INTO users VALUES ($1, $2, $3, $4, $5, $6);";
+    const result = await pool.query(registerQuery, info);
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error(err.message);
   }
 });
 
 
 
-let rooms = {}
-
-io.on("connection", (socket) => {
-  console.log(`User Connected: ${socket.id}`)
-
-  socket.on("join_room", (data) => {
-    console.log(`User: ${data.username} connect_id: ${socket.id} joined room ${data.quizId}`);
-    // attach player's socket connection to this room 
-    socket.join(data.quizId)
-
-    // push the new player to the room where they joined
-    if (!rooms[data.quizId]) {
-      rooms[data.quizId] = []
-    }
-    rooms[data.quizId].push({ username: data.username, connect_id: socket.id });
-
-    // send a list of updated players to all players 
-    io.in(data.quizId).emit("display_new_player", rooms[data.quizId])
-  })
-
-
-  socket.on('leave_room', (data) => {
-    // remove player from the room
-    if (rooms[data.quizId]) {
-      rooms[data.quizId] = rooms[data.quizId].filter(player => player.connect_id !== socket.id)
-    }
-
-    // disconnect player from this room
-    socket.leave(data.quizId)
-
-    // update new player list
-    io.in(data.quizId).emit("display_new_player", rooms[data.quizId])
-  })
-})
-
-
-app.get('/', (req, res) => {
-  res.send('Hello World!')
-});
-
-
-app.get('/protected', (req, res) => {
-  res.send('Hello!')
-})
-
-
-
 server.listen(port, () => {
-  console.log(`Server is running at http://localhost:${port}`)
-  console.log(process.env.DB_USER)
+  console.log(`Server is running at http://localhost:${port}`);
+  console.log(process.env.DB_USER);
 });
