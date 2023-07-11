@@ -8,7 +8,6 @@ import { auth } from "../firebase-config";
 
 function Register() {
   const navigate = useNavigate();
-  //const [uId, setUId] = useState("");
   const [email, setEmail] = useState("");
   const [fname, setfname] = useState("");
   const [lname, setlname] = useState("");
@@ -17,14 +16,13 @@ function Register() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-
     firebase_register();
-    setTimeout(10000);
     console.log(
       role + " " + fname + " " + lname + " " + email + " " + password + " "
       //uId
     );
   };
+
   const firebase_register = async () => {
     try {
       const user = await createUserWithEmailAndPassword(
@@ -32,7 +30,6 @@ function Register() {
         email,
         password
       ).then((userCredential) => {
-        //setUId(userCredential.user.uid);
         const regBody = {
           userid: userCredential.user.uid,
           userEmail: email,

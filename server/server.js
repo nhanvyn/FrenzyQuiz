@@ -7,6 +7,7 @@ const cors = require("cors");
 const app = express();
 dotenv.config();
 app.use(cors());
+app.use(express.json());
 
 const server = http.createServer(app);
 
@@ -24,13 +25,6 @@ const pool = new Pool({
   database: process.env.DB_DATABASE,
   password: process.env.DB_PASSWORD,
 });
-// const pool = new Pool ({
-//   user: "postgres",
-//   host: "34.28.208.104",
-//   port: "5432",
-//   database: "postgres",
-//   password: "frenzyquizdb@372"
-// })
 
 pool.connect((err) => {
   if (err) {
@@ -39,11 +33,6 @@ pool.connect((err) => {
     console.log("db connected");
   }
 });
-
-
-
-<<<<<<< HEAD
-=======
 
 const quizzes = [
   {
@@ -67,13 +56,12 @@ const quizzes = [
 
 let rooms = {}
 
->>>>>>> a4d7f122a1627689911391674df94ff5a9c53d35
 io.on("connection", (socket) => {
   console.log(`User Connected: ${socket.id}`)
 
   socket.on("join_room", (data) => {
     console.log(`User: ${data.email} connect_id: ${socket.id} joined room ${data.quizId}`);
-    // attach player's socket connection to this room 
+    // attach player's socket connection to this room
     socket.join(data.quizId)
 
     // if this is the first time the room is created, init empty players array and attach quiz data to this room
@@ -84,20 +72,22 @@ io.on("connection", (socket) => {
         quiz: quiz
       }
     }
-    // todo: handle the case where user join with different connection with same email and their previous connection has not shutdown => need to shutdown the previous connection and replace the connect_id with new connection. this happen when user close the browser but the connection still lives
 
     // check if user already exists in the room
-    const existingPlayer = rooms[data.quizId].players.find(player => player.email === data.email)
+    const existingPlayerIndex = rooms[data.quizId].players.findIndex(player => player.email === data.email)
 
     // If user doesn't exist in the room, add them
-    if (!existingPlayer) {
+    if (existingPlayerIndex === -1) {
       rooms[data.quizId].players.push({ email: data.email, connect_id: socket.id });
+    } else {
+      // this is where player reconnect with different socket.id -> modify their previous id with new socket id
+      rooms[data.quizId].players[existingPlayerIndex] = { email: data.email, connect_id: socket.id }
     }
 
-    // send a list of updated players to all players 
+    // send a list of updated players to all players
     io.in(data.quizId).emit("display_new_player", rooms[data.quizId].players)
 
-    //send quiz data to all players 
+    //send quiz data to all players
     io.in(data.quizId).emit("update_quiz", rooms[data.quizId].quiz)
   })
 
@@ -112,14 +102,10 @@ io.on("connection", (socket) => {
     socket.leave(data.quizId)
 
     // update new player list
-<<<<<<< HEAD
     io.in(data.quizId).emit("display_new_player", rooms[data.quizId]);
   });
-});
-=======
-    io.in(data.quizId).emit("display_new_player", rooms[data.quizId].players)
-  })
 
+  // homepage use this to find current room
   socket.on('find_current_room', (data) => {
     let roomData = null;
     for (let quizId in rooms) {
@@ -133,10 +119,10 @@ io.on("connection", (socket) => {
     socket.emit('current_room_found', roomData)
   })
 
-
+  // when the host click on delete room button
   socket.on('delete_room', (data) => {
     if (rooms[data.quizId].players) {
-      // notify every one that this room is deleted 
+      // notify every one that this room is deleted
       io.in(data.quizId).emit("room_deleted");
       // remove all players from this room
       rooms[data.quizId].players.forEach(player => {
@@ -147,11 +133,11 @@ io.on("connection", (socket) => {
       })
     }
     delete rooms[data.quizId]
->>>>>>> a4d7f122a1627689911391674df94ff5a9c53d35
-
-
   })
-})
+
+});
+
+
 
 
 app.get('/', (req, res) => {
@@ -163,7 +149,7 @@ app.get('/protected', (req, res) => {
   res.send('Hello!')
 })
 
-//post route
+
 app.post("/register", async (req, res) => {
   const uid = req.body.userid;
   const password = req.body.userPassword;
@@ -181,11 +167,15 @@ app.post("/register", async (req, res) => {
     console.error(err.message);
   }
 });
+
+//login route
+
+
 app.post("/createQuiz", async (req, res) => {
   try {
     const result = await pool.query(
-      `INSERT INTO 
-    quizzes (tname,mid, sid,tfid,created) 
+      `INSERT INTO
+    quizzes (tname,mid, sid,tfid,created)
     VALUES ($1,NULL,NULL,NULL, CURRENT_TIMESTAMP) RETURNING *`,
       [req.body.name]
     );

@@ -26,17 +26,10 @@ function App() {
   const [user, setUser] = useState({});
 
   onAuthStateChanged(auth, (currentUser) => {
-<<<<<<< HEAD
     setUser(currentUser);
     console.log("currentuser = ", user);
   });
 
-=======
-    setUser(currentUser)
-    console.log("currentuser = ", user)
-  })
- 
->>>>>>> a4d7f122a1627689911391674df94ff5a9c53d35
   useEffect(() => {
     if (!socket) {
       const newSocket = io.connect("http://localhost:3500");
@@ -60,7 +53,7 @@ function App() {
                 <Route path="/Login" element={<Login />} />
                 <Route path="/Register" element={<Register />} />
                 <Route path="/StudentQuizList" element={<StudentQuizList />} />
-                <Route path="/StudentQuizDetail/:id"element={<StudentQuizDetail />}/>
+                <Route path="/StudentQuizDetail/:id" element={<StudentQuizDetail />} />
                 <Route path="/Quiz/:id" element={<QuesitonList />} />
                 <Route path="/Create" element={<CreateQuestion />} />
                 <Route path="/Quizzes" element={<Quizzes />} />
