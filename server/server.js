@@ -114,9 +114,8 @@ io.on("connection", (socket) => {
     // update new player list
     io.in(data.quizId).emit("display_new_player", rooms[data.quizId]);
   });
-});
 
-
+  // homepage use this to find current room 
   socket.on('find_current_room', (data) => {
     let roomData = null;
     for (let quizId in rooms) {
@@ -130,7 +129,7 @@ io.on("connection", (socket) => {
     socket.emit('current_room_found', roomData)
   })
 
-
+  // when the host click on delete room button
   socket.on('delete_room', (data) => {
     if (rooms[data.quizId].players) {
       // notify every one that this room is deleted 
@@ -145,6 +144,9 @@ io.on("connection", (socket) => {
     }
     delete rooms[data.quizId]
   })
+
+});
+
 
 
 
