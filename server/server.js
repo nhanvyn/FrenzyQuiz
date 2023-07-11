@@ -7,6 +7,7 @@ const cors = require("cors");
 const app = express();
 dotenv.config();
 app.use(cors());
+app.use(express.json());
 
 const server = http.createServer(app);
 
@@ -24,13 +25,6 @@ const pool = new Pool({
   database: process.env.DB_DATABASE,
   password: process.env.DB_PASSWORD,
 });
-// const pool = new Pool ({
-//   user: "postgres",
-//   host: "34.28.208.104",
-//   port: "5432",
-//   database: "postgres",
-//   password: "frenzyquizdb@372"
-// })
 
 pool.connect((err) => {
   if (err) {
@@ -39,10 +33,6 @@ pool.connect((err) => {
     console.log("db connected");
   }
 });
-
-
-
-
 
 const quizzes = [
   {
@@ -160,7 +150,7 @@ app.get('/protected', (req, res) => {
 })
 
 
-//post route
+//register route
 app.post("/register", async (req, res) => {
   const uid = req.body.userid;
   const password = req.body.userPassword;

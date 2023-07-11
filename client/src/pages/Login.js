@@ -18,8 +18,6 @@ function Login() {
     setPassword(event.target.value);
   };
 
-
-
   const handleSubmit = (event) => {
     event.preventDefault();
     console.log(email + " " + password);
