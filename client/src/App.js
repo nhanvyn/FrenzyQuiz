@@ -34,7 +34,7 @@ function App() {
     setUser(currentUser)
     console.log("currentuser = ", user)
   })
-  
+ 
   useEffect(() => {
     if (!socket){
       const newSocket = io.connect("http://localhost:3500")
