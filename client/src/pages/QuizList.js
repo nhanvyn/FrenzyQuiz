@@ -6,19 +6,29 @@ import { SocketContext } from '../App';
 const QuizList = () => {
   const navigate = useNavigate();
   const socket = useContext(SocketContext)
+
+  // this will be replaced by actual quizzes from database
   const quizzes = [
     {
       id: "123",
-      name: "quiz1"
+      name: "quiz1",
+      question: "8"
     },
     {
       id: "456",
-      name: "quiz2"
+      name: "quiz2",
+      question: "10"
     }
   ]
+  
 
-  const goToQuizRoom = (quizId) => {
-    // todo: check if quizId exist
+  useEffect(() => {
+    // need to retrieve all quizzes here 
+  }, [])
+
+  const startQuiz = (quizId) => {
+    // todo: 
+    // create a quiz room on server
 
     navigate(`/Room/${quizId}`)
   };
@@ -41,7 +51,7 @@ const QuizList = () => {
                 <small>Created date: 06-08-2023</small>
                 <p className="mb-1">CMPT372 quiz</p>
                 <button type="button" name="edit" className="btn btn-warning btn-sm mt-2">Edit</button>
-                <button type="button" name="start" className="btn btn-primary btn-sm mt-2 ml-2" onClick={() => goToQuizRoom(quiz.id)}>Start</button>
+                <button type="button" name="start" className="btn btn-primary btn-sm mt-2 ml-2" onClick={() => startQuiz(quiz.id)}>Start</button>
               </div>
             ))
           }
