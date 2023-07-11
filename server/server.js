@@ -46,7 +46,6 @@ let rooms = {};
 app.use(cors());
 app.use(express.json());
 
-
 io.on("connection", (socket) => {
   console.log(`User Connected: ${socket.id}`);
 
@@ -81,7 +80,7 @@ io.on("connection", (socket) => {
     // update new player list
     io.in(data.quizId).emit("display_new_player", rooms[data.quizId]);
   });
-}); 
+});
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
@@ -109,8 +108,21 @@ app.post("/register", async (req, res) => {
     console.error(err.message);
   }
 });
-
-
+app.post("/createQuiz", async (req, res) => {
+  try {
+    const result = await pool.query(
+      `INSERT INTO 
+    quizzes (tname,mid, sid,tfid,created) 
+    VALUES ($1,NULL,NULL,NULL, CURRENT_TIMESTAMP) RETURNING *`,
+      [req.body.name]
+    );
+    var input = [result.rows[0]["quizid"]];
+    console.log("id is: " + input);
+  } catch (e) {
+    console.error(e);
+  }
+  res.json(input);
+});
 
 server.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);
