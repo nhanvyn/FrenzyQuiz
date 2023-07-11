@@ -23,23 +23,31 @@ export const UserContext = createContext({});
 
 function App() {
   const [socket, setSocket] = useState(null);
-  const [user, setUser] = useState({});
+  const [user, setUser] = useState(null);
+  const [IsBeingRegistered, SetIsBeingRegistered] = useState(false)
 
-  onAuthStateChanged(auth, (currentUser) => {
-    setUser(currentUser);
-    console.log("currentuser = ", user);
-  });
+  const fetchUserData = async (uid) => {
+    const response = await fetch(`http://localhost:3500/users/${uid}`);
+    const userData = await response.json();
+    console.log("user is ", userData)
+    setUser(userData);
+  };
 
   useEffect(() => {
+    onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser) {
+        fetchUserData(currentUser.uid);
+      }
+    });
+
     if (!socket) {
       const newSocket = io.connect("http://localhost:3500");
       setSocket(newSocket);
     }
-  }, []);
-
+  }, [socket]);
   return (
     <>
-      <UserContext.Provider value={user}>
+      <UserContext.Provider value={{ user, setUser, fetchUserData, IsBeingRegistered, SetIsBeingRegistered }}>
         <SocketContext.Provider value={socket}>
           <BrowserRouter>
             <div className="App">

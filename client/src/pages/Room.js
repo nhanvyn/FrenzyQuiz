@@ -10,7 +10,7 @@ const Room = () => {
   const [quiz, setQuiz] = useState(null);
   const [players, setPlayers] = useState([])
   const socket = useContext(SocketContext)
-  const user = useContext(UserContext)
+  const {user} = useContext(UserContext)
 
   // this hook is for fetching quiz information
   useEffect(() => {
@@ -40,6 +40,7 @@ const Room = () => {
   
       const handleDisplayPlayer = (data) => {
         console.log("display player:", data);
+        console.log("typeof data: ", typeof data); // Check the type here
         setPlayers(data)
       };
 

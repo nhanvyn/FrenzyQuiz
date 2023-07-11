@@ -6,7 +6,7 @@ const HomePage = () => {
 
   const [currentRoom, setCurrentRoom] = useState(null)
   const socket = useContext(SocketContext)
-  const user = useContext(UserContext)
+  const {user} = useContext(UserContext)
   const navigate = useNavigate();
 
   useEffect(() => {

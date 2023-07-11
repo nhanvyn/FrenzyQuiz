@@ -102,7 +102,7 @@ io.on("connection", (socket) => {
     socket.leave(data.quizId)
 
     // update new player list
-    io.in(data.quizId).emit("display_new_player", rooms[data.quizId]);
+    io.in(data.quizId).emit("display_new_player", rooms[data.quizId].players);
   });
 
   // homepage use this to find current room
@@ -151,20 +151,36 @@ app.get('/protected', (req, res) => {
 
 
 app.post("/register", async (req, res) => {
-  const uid = req.body.userid;
-  const password = req.body.userPassword;
-  const email = req.body.userEmail;
-  const fname = req.body.userFname;
-  const lname = req.body.userLname;
-  const role = req.body.userRole;
-  const info = [uid, role, fname, lname, email, password];
-  console.log(info);
   try {
-    const registerQuery = "INSERT INTO users VALUES ($1, $2, $3, $4, $5, $6);";
+    const uid = req.body.userid;
+    const email = req.body.userEmail;
+    const fname = req.body.userFname;
+    const lname = req.body.userLname;
+    const role = req.body.userRole;
+    const info = [uid, role, fname, lname, email];
+
+    const registerQuery = "INSERT INTO users (uid, role, fname, lname, email) VALUES ($1, $2, $3, $4, $5);";
     const result = await pool.query(registerQuery, info);
     res.json(result.rows[0]);
   } catch (err) {
     console.error(err.message);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+app.get("/users/:uid", async (req, res) => {
+  try {
+    const { uid } = req.params;
+    const getUserQuery = "SELECT * FROM users WHERE uid = $1;";
+    const result = await pool.query(getUserQuery, [uid]);
+    if (result.rows.length > 0) {
+      res.json(result.rows[0]);
+    } else {
+      res.status(404).json({ error: "User not found" });
+    }
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ error: "Server error" });
   }
 });
 

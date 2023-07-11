@@ -1,13 +1,14 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { Link, NavLink } from "react-router-dom";
 import { UserContext } from '../App';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase-config';
 const Navbar = () => {
-  const user = useContext(UserContext)
+  const {user, setUser} = useContext(UserContext)
 
   const handleLogout = async () => {
     await signOut(auth)
+    setUser(null)
   }
 
   return (

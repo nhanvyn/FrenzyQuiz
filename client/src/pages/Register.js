@@ -1,12 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   createUserWithEmailAndPassword,
   onAuthStateChanged,
 } from "firebase/auth";
 import { auth } from "../firebase-config";
+import { UserContext } from "../App";
 
 function Register() {
+  const { fetchUserData, IsBeingRegistered, SetIsBeingRegistered } = useContext(UserContext);
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [fname, setfname] = useState("");
@@ -16,6 +18,7 @@ function Register() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    SetIsBeingRegistered(true);
     firebase_register();
     console.log(
       role + " " + fname + " " + lname + " " + email + " " + password + " "
@@ -23,23 +26,29 @@ function Register() {
     );
   };
 
+
+
   const firebase_register = async () => {
     try {
-      const user = await createUserWithEmailAndPassword(
+      const userCredential = await createUserWithEmailAndPassword(
         auth,
         email,
         password
-      ).then((userCredential) => {
-        const regBody = {
-          userid: userCredential.user.uid,
-          userEmail: email,
-          userPassword: password,
-          userFname: fname,
-          userLname: lname,
-          userRole: role,
-        };
-        postRequestSubmit(regBody);
-      });
+      );
+
+      const regBody = {
+        userid: userCredential.user.uid,
+        userEmail: email,
+        // userPassword: password,
+        userFname: fname,
+        userLname: lname,
+        userRole: role,
+      };
+
+      // Wait for postRequestSubmit to finish before proceeding
+      await postRequestSubmit(regBody);
+
+
       navigate("/");
     } catch (error) {
       console.error(error.message);
@@ -54,7 +63,7 @@ function Register() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(regBody),
       });
-      console.log(response);
+      console.log("Insert user result: ", response);
     } catch (err) {
       console.error(err.message);
     }
@@ -120,7 +129,7 @@ function Register() {
                     <div className="form-outline mb-4">
                       <input
                         type="text"
-                        id="form3Example1cg"
+                        id="form3Example2cg"
                         className="form-control form-control-lg"
                         value={lname}
                         onChange={(e) => setlname(e.target.value)}
