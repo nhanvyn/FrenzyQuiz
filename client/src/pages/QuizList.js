@@ -51,7 +51,7 @@ const QuizList = () => {
                 </div>
                 <small>Created date: {new Date(quiz.created).toISOString().split('T')[0]}</small>
                 <p className="mb-1">CMPT372 quiz</p>
-                <button type="button" name="edit" className="btn btn-warning btn-sm mt-2">Edit</button>
+                <button type="button" name="edit" className="btn btn-warning btn-sm mt-2" onClick={() => alert("Not impletented yet")}>Edit</button>
                 <button type="button" name="start" className="btn btn-primary btn-sm mt-2 ml-2" onClick={() => startQuiz(quiz.quizid)}>Start</button>
               </div>
             ))

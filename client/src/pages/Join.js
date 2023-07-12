@@ -9,10 +9,26 @@ const Join = () => {
 
 
   const goToQuizRoom = (quizId) => {
-
-    // todo: check if the id exist
-    navigate(`/Room/${quizId}`)
+    socket.emit('check_room_exists', {quizId: quizId})
   };
+
+  useEffect(() => {
+    if (socket) {
+      const handleRoomExists = (exists) => {
+        if (exists) {
+          navigate(`/Room/${quizId}`);
+        } else {
+          alert('This room does not exist. Please try again.');
+        }
+      };
+      socket.on('room_exists', handleRoomExists);
+
+      return () => {
+        socket.off('room_exists', handleRoomExists);
+      };
+    }
+  }, [socket, quizId]);
+
   return (
     <div className="container w-75 d-flex align-items-center justify-content-center">
       <div className="d-flex flex-column align-items-center">

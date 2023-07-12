@@ -2,13 +2,10 @@ import React, { useState, useContext, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   createUserWithEmailAndPassword,
-  onAuthStateChanged,
 } from "firebase/auth";
 import { auth } from "../firebase-config";
-import { UserContext } from "../App";
 
 function Register() {
-  const { fetchUserData, IsBeingRegistered, SetIsBeingRegistered } = useContext(UserContext);
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [fname, setfname] = useState("");
@@ -18,15 +15,11 @@ function Register() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    SetIsBeingRegistered(true);
     firebase_register();
     console.log(
-      role + " " + fname + " " + lname + " " + email + " " + password + " "
-      //uId
+      role + " " + fname + " " + lname + " " + email + " " + password
     );
   };
-
-
 
   const firebase_register = async () => {
     try {
@@ -52,6 +45,7 @@ function Register() {
       navigate("/");
     } catch (error) {
       console.error(error.message);
+      alert("Firebase registration error: " + error.message);
     }
   };
 
@@ -66,6 +60,7 @@ function Register() {
       console.log("Insert user result: ", response);
     } catch (err) {
       console.error(err.message);
+      alert("Server registration error: " + err.message);
     }
   };
 

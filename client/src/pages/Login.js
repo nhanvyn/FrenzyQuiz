@@ -36,6 +36,7 @@ function Login() {
         navigate('/')
       } catch (error) {
         console.log(error.message)
+        alert("Login error: " + error.message);
       }
     }
     login()

@@ -97,7 +97,7 @@ io.on("connection", (socket) => {
 
   });
 
-  // homepage use this to find current room
+  // homepage use this to find previously joined room
   socket.on("find_current_room", (data) => {
     let roomData = null;
     for (let quizId in rooms) {
@@ -126,6 +126,16 @@ io.on("connection", (socket) => {
     }
     delete rooms[data.quizId];
   });
+
+  // check if a room exist before joining player
+  socket.on('check_room_exists', (data) => {
+    if (rooms[data.quizId]) {
+      socket.emit('room_exists', true);
+    } else {
+      socket.emit('room_exists', false);
+    }
+  });
+
 });
 
 app.get("/", (req, res) => {
