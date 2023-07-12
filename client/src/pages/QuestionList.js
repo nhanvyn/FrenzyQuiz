@@ -32,7 +32,8 @@ function QuesitonList() {
   console.log(qList);
   return (
     <>
-      <h2>Quizzes</h2>
+      <h1>NOT YET IMPLEMENTED</h1>
+      <h2>Questions</h2>
       <ul>
         {questions.map((temp, index) => (
           <li key={index} className="d-flex ">
@@ -47,8 +48,6 @@ function QuesitonList() {
         </NavLink>
       </button>
       <button className="btn btn-primary ">Finish Quiz</button>
-
-      <button className="btn btn-danger ">CANCEL</button>
     </>
   );
 }
