@@ -1,12 +1,11 @@
-import { useState, useContext } from "react";
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import { useContext } from "react";
+import { useNavigate } from "react-router-dom";
 import { UserContext } from "../App";
 
 function Quizzes() {
   const navigate = useNavigate();
   const { user } = useContext(UserContext);
   console.log(user);
-  const [quizid, setQuizId] = useState([]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -27,7 +26,8 @@ function Quizzes() {
         .then((response) => {
           return response.json();
         })
-        .then((data) => navigate("/Quiz/" + data));
+        .then((data) => navigate("/Quiz/" + data))
+        .then(console.log("quiz made"));
     } catch (err) {
       console.error(err.message);
     }
