@@ -207,6 +207,25 @@ app.post("/createQuiz", async (req, res) => {
   res.json(input);
 });
 
+
+// Getting List of User's Created Quizzes
+app.get("/getCreatedQuiz/:uid", async (req, res) => {
+  try {
+    const uid = req.params.uid;
+    const getCreatedQuiz = `
+      SELECT *
+      FROM quizzes
+      WHERE uid = $1;
+    `;
+
+    const result = await pool.query(getCreatedQuiz, [uid]);
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server Error getting the list of user's created quizzes. " })
+  }
+});
+
 server.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);
   console.log(process.env.DB_USER);
