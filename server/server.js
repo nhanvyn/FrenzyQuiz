@@ -78,15 +78,12 @@ io.on("connection", (socket) => {
 
     // send a list of updated players to all players
     io.in(data.quizId).emit("display_new_player", rooms[data.quizId].players);
-    console.log("1/Emiting to room", data.quizId, `datatype:  ${typeof data.quizId}` )
-    //send quiz data to all players
-    // io.in(data.quizId).emit("update_quiz", rooms[data.quizId].quiz);
+  
   });
 
   socket.on("leave_room", (data) => {
     // remove player from the room
     if (rooms[data.quizId].players) {
-      console.log("removing players out of the room")
       rooms[data.quizId].players = rooms[data.quizId].players.filter(
         (player) => player.email !== data.email
       );
@@ -95,17 +92,9 @@ io.on("connection", (socket) => {
     // disconnect player from this room
     socket.leave(data.quizId);
 
-    // update new player list
-    console.log("CHECK data.quizId", data.quizId, "room.pla7ers = ", rooms[data.quizId].players)
-    for (const [id, socket] of io.sockets.sockets.entries()) {
-      console.log(`Socket ID: ${id}`);
-    }
+    // update new player list 
     io.in(data.quizId).emit("display_new_player", rooms[data.quizId].players);
 
-    // console.log("player", data.email, " leave room", data.quizId)
-    // console.log("2/Emiting to room", data.quizId, `datatype:  ${typeof data.quizId}`)    
-    // io.in(data.quizId).emit("display_new_player", rooms[data.quizId].players);
-    
   });
 
   // homepage use this to find current room
