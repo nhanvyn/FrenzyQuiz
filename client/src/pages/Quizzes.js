@@ -1,6 +1,7 @@
 import { useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserContext } from "../App";
+import { NavLink } from "react-router-dom";
 
 function Quizzes() {
   const navigate = useNavigate();
@@ -35,14 +36,36 @@ function Quizzes() {
 
   return (
     <>
-      <h1>Make A Quiz</h1>
+      <h1 className=" d-flex justify-content-center">Make A Quiz</h1>
       <p>{}</p>
-      {user === null && <button>Please sign in or create an account</button>}
+      {user === null && (
+        <div className=" d-flex justify-content-center">
+          <NavLink activeclassname="active" className="nav-link" to="/Register">
+            <button className="btn btn-primary mt-2">
+              Please login or create an account
+            </button>
+          </NavLink>
+        </div>
+      )}
       {user !== null && (
-        <form method="POST" onSubmit={handleSubmit}>
-          <label>Enter Name</label>
-          <input type="text" id="name" name="name" required></input>
-          <button type="submit">Enter</button>
+        <form
+          className=" d-flex justify-content-center"
+          method="POST"
+          onSubmit={handleSubmit}
+        >
+          <div className="form-row">
+            <label>Enter Name</label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              className="form-control"
+              required
+            ></input>
+            <button type="submit" className="btn btn-primary btn-block mt-2">
+              Create
+            </button>
+          </div>
         </form>
       )}
     </>
