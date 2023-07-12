@@ -27,10 +27,17 @@ function App() {
   const [IsBeingRegistered, SetIsBeingRegistered] = useState(false)
 
   const fetchUserData = async (uid) => {
-    const response = await fetch(`http://localhost:3500/users/${uid}`);
-    const userData = await response.json();
-    console.log("user is ", userData)
-    setUser(userData);
+    try {
+      const response = await fetch(`http://localhost:3500/users/${uid}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const userData = await response.json();
+      console.log("user is ", userData)
+      setUser(userData);
+    } catch (error) {
+      console.error('An error occurred while fetching the user data:', error);
+    }
   };
 
   useEffect(() => {
