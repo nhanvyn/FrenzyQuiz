@@ -30,16 +30,16 @@ const HomePage = () => {
   }, [socket, user])
 
   const Rejoin = () => {
-    navigate(`/Room/${currentRoom.quiz.id}`)
+    navigate(`/Room/${currentRoom.quiz.quizid}`)
   }
 
   const deleteRoom = () => {
-    socket.emit('delete_room', { email: user.email, quizId: currentRoom.quiz.id })
+    socket.emit('delete_room', { email: user.email, quizId: currentRoom.quiz.quizid })
     setCurrentRoom(null)
   }
 
   const leaveRoom = () => {
-    socket.emit('leave_room', { email: user.email, quizId: currentRoom.quiz.id })
+    socket.emit('leave_room', { email: user.email, quizId: currentRoom.quiz.quizid })
     setCurrentRoom(null)
   }
 
@@ -51,12 +51,12 @@ const HomePage = () => {
           <h3>Current quizz</h3>
           <div className="card" style={{ width: "18rem" }}>
             <div className="card-body">
-              <h5 className="card-title">{currentRoom.quiz.name}</h5>
-              <small className="mb-1">id: {currentRoom.quiz.id} </small> <br></br>
-              <small>Date: {currentRoom.quiz.date}</small>
+              <h5 className="card-title">{currentRoom.quiz.tname}</h5>
+              <small className="mb-1">id: {currentRoom.quiz.quizid} </small> <br></br>
+              <small>Date:  {new Date(currentRoom.quiz.created).toISOString().split('T')[0]}</small>
               <div className='d-flex'>
                 <button type="button" name="edit" className="btn btn-success btn-sm mt-2" onClick={() => Rejoin()}>Rejoin</button>
-                {currentRoom.quiz.author === user.email ? (
+                {currentRoom.quiz.uid === user.uid ? (
                   <button type="button" name="start" className="btn btn-danger btn-sm mt-2 ml-2" onClick={() => deleteRoom()}>Delete room</button>
                 ): (
                     <button type = "button" name = "start" className = "btn btn-danger btn-sm mt-2 ml-2" onClick={() => leaveRoom()}>Leave</button>

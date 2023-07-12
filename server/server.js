@@ -34,24 +34,7 @@ pool.connect((err) => {
   }
 });
 
-const quizzes = [
-  {
-    id: "123",
-    name: "quiz1",
-    question: "59",
-    points: "10",
-    date: "20-09-2023",
-    author: "sup@gmail.com",
-  },
-  {
-    id: "456",
-    name: "quiz2",
-    question: "10",
-    points: "20",
-    date: "20-09-2023",
-    author: "sup@gmail.com",
-  },
-];
+
 
 let rooms = {};
 
@@ -67,10 +50,10 @@ io.on("connection", (socket) => {
 
     // if this is the first time the room is created, init empty players array and attach quiz data to this room
     if (!rooms[data.quizId]) {
-      const quiz = quizzes.find((quiz) => quiz.id == data.quizId); // this will be replace with endpoint to database later
+      // const quiz = quizzes.find((quiz) => quiz.id == data.quizId); // this will be replace with endpoint to database later
       rooms[data.quizId] = {
         players: [],
-        quiz: quiz,
+        quiz: data.quiz
       };
     }
 
@@ -95,14 +78,15 @@ io.on("connection", (socket) => {
 
     // send a list of updated players to all players
     io.in(data.quizId).emit("display_new_player", rooms[data.quizId].players);
-
+    console.log("1/Emiting to room", data.quizId, `datatype:  ${typeof data.quizId}` )
     //send quiz data to all players
-    io.in(data.quizId).emit("update_quiz", rooms[data.quizId].quiz);
+    // io.in(data.quizId).emit("update_quiz", rooms[data.quizId].quiz);
   });
 
   socket.on("leave_room", (data) => {
     // remove player from the room
     if (rooms[data.quizId].players) {
+      console.log("removing players out of the room")
       rooms[data.quizId].players = rooms[data.quizId].players.filter(
         (player) => player.email !== data.email
       );
@@ -112,7 +96,16 @@ io.on("connection", (socket) => {
     socket.leave(data.quizId);
 
     // update new player list
+    console.log("CHECK data.quizId", data.quizId, "room.pla7ers = ", rooms[data.quizId].players)
+    for (const [id, socket] of io.sockets.sockets.entries()) {
+      console.log(`Socket ID: ${id}`);
+    }
     io.in(data.quizId).emit("display_new_player", rooms[data.quizId].players);
+
+    // console.log("player", data.email, " leave room", data.quizId)
+    // console.log("2/Emiting to room", data.quizId, `datatype:  ${typeof data.quizId}`)    
+    // io.in(data.quizId).emit("display_new_player", rooms[data.quizId].players);
+    
   });
 
   // homepage use this to find current room
@@ -223,6 +216,23 @@ app.get("/getCreatedQuiz/:uid", async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Server Error getting the list of user's created quizzes. " })
+  }
+});
+
+// find the quiz that match quiz id
+app.get("/quizzes/:quizId", async (req, res) => {
+  try {
+    const { quizId } = req.params;
+    const getQuizQuery = "SELECT * FROM quizzes WHERE quizid = $1;";
+    const result = await pool.query(getQuizQuery, [quizId]);
+    if (result.rows.length > 0) {
+      res.json(result.rows[0]);
+    } else {
+      res.status(404).json({ error: "Quiz not found" });
+    }
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ error: "Server error" });
   }
 });
 
