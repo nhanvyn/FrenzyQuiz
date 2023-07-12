@@ -33,13 +33,13 @@ CREATE TABLE IF NOT EXISTS tf (
 );
 CREATE TABLE IF NOT EXISTS quizzes(
     quizid SERIAL PRIMARY KEY,
-    teacherid varchar(255),
+    uid varchar(255),
     tname varchar(255),
 	mid INT,
 	sid INT,
 	tfid INT,
     created TIMESTAMP,
-    FOREIGN KEY (teacherid) REFERENCES users(uid)
+    FOREIGN KEY (uid) REFERENCES users(uid)
 );
 CREATE TABLE IF NOT EXISTS mclist(
 	mclistid int,

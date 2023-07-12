@@ -1,8 +1,11 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
+import { UserContext } from "../App";
 
 function Quizzes() {
   const navigate = useNavigate();
+  const { user } = useContext(UserContext);
+  console.log(user);
   const [quizid, setQuizId] = useState([]);
 
   const handleSubmit = async (event) => {
@@ -10,6 +13,7 @@ function Quizzes() {
     var target = event.target;
     var input = {
       name: target.name.value,
+      tid: user.uid,
     };
     var data = JSON.stringify(input);
     try {
@@ -29,18 +33,18 @@ function Quizzes() {
     }
   };
 
-  const handle = async (e) => {
-    navigate("/Quiz/1");
-  };
   return (
     <>
-      <h1>Quizzes</h1>
-      <form method="POST" onSubmit={handleSubmit}>
-        <label>Enter Name</label>
-        <input type="text" id="name" name="name"></input>
-        <button type="submit">Enter</button>
-      </form>
-      <button onClick={handle}>New Quiz</button>
+      <h1>Make A Quiz</h1>
+      <p>{}</p>
+      {user === null && <button>Please sign in or create an account</button>}
+      {user !== null && (
+        <form method="POST" onSubmit={handleSubmit}>
+          <label>Enter Name</label>
+          <input type="text" id="name" name="name" required></input>
+          <button type="submit">Enter</button>
+        </form>
+      )}
     </>
   );
 }
