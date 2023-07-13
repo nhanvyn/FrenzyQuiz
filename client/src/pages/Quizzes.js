@@ -16,7 +16,7 @@ function Quizzes() {
     };
     var data = JSON.stringify(input);
     try {
-      await fetch("/createQuiz", {
+      await fetch("http://35.193.138.187:3500/createQuiz", {
         method: "POST",
         headers: {
           "Content-type": "application/json; charset=UTF-8",
@@ -36,7 +36,7 @@ function Quizzes() {
   return (
     <>
       <h1>Make A Quiz</h1>
-      <p>{}</p>
+      <p>{ }</p>
       {user === null && <button>Please sign in or create an account</button>}
       {user !== null && (
         <form method="POST" onSubmit={handleSubmit}>

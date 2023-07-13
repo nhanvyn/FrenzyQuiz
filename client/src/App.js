@@ -28,7 +28,7 @@ function App() {
 
   const fetchUserData = async (uid) => {
     try {
-      const response = await fetch(`http://localhost:3500/users/${uid}`);
+      const response = await fetch(`http://35.193.138.187:3500/users/${uid}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -48,7 +48,7 @@ function App() {
     });
 
     if (!socket) {
-      const newSocket = io.connect("http://localhost:3500");
+      const newSocket = io.connect("http://35.193.138.187:3500/");
       setSocket(newSocket);
     }
   }, [socket]);

@@ -13,11 +13,11 @@ const QuizList = () => {
     // need to retrieve all quizzes here 
     const fetchQuizzes = async () => {
       try {
-        const responsee = await fetch(`/getCreatedQuiz/${user.uid}`);
+        const responsee = await fetch(`http://35.193.138.187:3500/getCreatedQuiz/${user.uid}`);
         const data = await responsee.json();
         console.log('Fetched quizzes:', data);
         setQuizzes(data);
-      } catch  (err) { 
+      } catch (err) {
         console.error(err);
       }
     };

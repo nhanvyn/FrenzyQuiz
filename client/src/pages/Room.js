@@ -16,7 +16,7 @@ const Room = () => {
   useEffect(() => {
     const fetchQuizData = async () => {
       try {
-        const response = await fetch(`http://localhost:3500/quizzes/${id}`);
+        const response = await fetch(`http://35.193.138.187:3500/quizzes/${id}`);
         const data = await response.json();
         console.log("quizdata = ", data)
         setQuiz(data);

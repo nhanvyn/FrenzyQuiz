@@ -6,17 +6,20 @@ const { Server } = require("socket.io");
 const cors = require("cors");
 const app = express();
 dotenv.config();
-app.use(cors());
+
+// Define allowed origins for cors
+const allowedOrigins = ["http://localhost:3000", "http://35.193.138.187"];
+app.use(cors({ origin: allowedOrigins }));
+
 app.use(express.json());
 
 const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: "*",
   },
 });
-
 const port = process.env.PORT || 3500;
 
 const pool = new Pool({
@@ -78,7 +81,7 @@ io.on("connection", (socket) => {
 
     // send a list of updated players to all players
     io.in(data.quizId).emit("display_new_player", rooms[data.quizId].players);
-  
+
   });
 
   socket.on("leave_room", (data) => {
@@ -235,7 +238,6 @@ app.get("/quizzes/:quizId", async (req, res) => {
   }
 });
 
-server.listen(port, () => {
-  console.log(`Server is running at http://localhost:${port}`);
-  console.log(process.env.DB_USER);
+server.listen(port, '0.0.0.0', () => {
+  console.log(`Server is running on PORT ${port}`);
 });
