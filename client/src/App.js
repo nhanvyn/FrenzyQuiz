@@ -16,7 +16,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "./firebase-config";
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import Quizzes from "./pages/Quizzes";
-
+import apiUrl from "./api-config";
 
 export const SocketContext = createContext();
 export const UserContext = createContext({});
@@ -28,13 +28,15 @@ function App() {
 
   const fetchUserData = async (uid) => {
     try {
-      const response = await fetch(`http://35.193.138.187:3500/users/${uid}`);
+      const response = await fetch(`${apiUrl}/users/${uid}`);
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        console.log("User information is not yet saved in database, wait for register...")
       }
-      const userData = await response.json();
-      console.log("user is ", userData)
-      setUser(userData);
+      else {
+        const userData = await response.json();
+        console.log("App.js: user is ", userData)
+        setUser(userData);
+      }
     } catch (error) {
       console.error('An error occurred while fetching the user data:', error);
     }
@@ -48,7 +50,7 @@ function App() {
     });
 
     if (!socket) {
-      const newSocket = io.connect("http://35.193.138.187:3500/");
+      const newSocket = io.connect(apiUrl);
       setSocket(newSocket);
     }
   }, [socket]);

@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import QRCode from 'qrcode.react';
 import { SocketContext, UserContext } from '../App';
 import { useNavigate } from 'react-router-dom';
+import apiUrl from "../api-config";
 
 const Room = () => {
   const navigate = useNavigate();
@@ -16,7 +17,7 @@ const Room = () => {
   useEffect(() => {
     const fetchQuizData = async () => {
       try {
-        const response = await fetch(`http://35.193.138.187:3500/quizzes/${id}`);
+        const response = await fetch(`${apiUrl}/quizzes/${id}`);
         const data = await response.json();
         console.log("quizdata = ", data)
         setQuiz(data);

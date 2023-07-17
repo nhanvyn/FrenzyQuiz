@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SocketContext, UserContext } from '../App';
-
+import apiUrl from "../api-config";
 
 const QuizList = () => {
   const navigate = useNavigate();
@@ -13,7 +13,7 @@ const QuizList = () => {
     // need to retrieve all quizzes here 
     const fetchQuizzes = async () => {
       try {
-        const responsee = await fetch(`http://35.193.138.187:3500/getCreatedQuiz/${user.uid}`);
+        const responsee = await fetch(`${apiUrl}/getCreatedQuiz/${user.uid}`);
         const data = await responsee.json();
         console.log('Fetched quizzes:', data);
         setQuizzes(data);

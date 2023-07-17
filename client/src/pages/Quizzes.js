@@ -2,6 +2,7 @@ import { useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserContext } from "../App";
 import { NavLink } from "react-router-dom";
+import apiUrl from "../api-config";
 
 function Quizzes() {
   const navigate = useNavigate();
@@ -17,7 +18,7 @@ function Quizzes() {
     };
     var data = JSON.stringify(input);
     try {
-      await fetch("http://35.193.138.187:3500/createQuiz", {
+      await fetch(`${apiUrl}/createQuiz`, {
         method: "POST",
         headers: {
           "Content-type": "application/json; charset=UTF-8",

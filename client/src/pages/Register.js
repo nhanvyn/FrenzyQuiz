@@ -4,15 +4,31 @@ import {
   createUserWithEmailAndPassword,
 } from "firebase/auth";
 import { auth } from "../firebase-config";
+import { UserContext } from "../App";
+import apiUrl from "../api-config";
 
 function Register() {
   const navigate = useNavigate();
+  const { setUser } = useContext(UserContext)
   const [email, setEmail] = useState("");
   const [fname, setfname] = useState("");
   const [lname, setlname] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("student");
 
+  const getUserData = async (uid) => {
+    try {
+      const response = await fetch(`${apiUrl}/users/${uid}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const userData = await response.json();
+      console.log("Register.js: user is ", userData)
+      setUser(userData);
+    } catch (error) {
+      console.error('An error occurred while fetching the user data:', error);
+    }
+  };
   const handleSubmit = async (event) => {
     event.preventDefault();
     firebase_register();
@@ -40,7 +56,7 @@ function Register() {
 
       // Wait for postRequestSubmit to finish before proceeding
       await postRequestSubmit(regBody);
-
+      await getUserData(userCredential.user.uid);
 
       navigate("/");
     } catch (error) {
@@ -52,12 +68,13 @@ function Register() {
   const postRequestSubmit = async (regBody) => {
     //fetch post request
     try {
-      const response = await fetch("http://35.193.138.187:3500/register", {
+      const response = await fetch(`${apiUrl}/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(regBody),
       });
-      console.log("Insert user result: ", response);
+      console.log("Insert result: ", response);
+      
     } catch (err) {
       console.error(err.message);
       alert("Server registration error: " + err.message);
