@@ -42,23 +42,23 @@ CREATE TABLE IF NOT EXISTS quizzes(
     FOREIGN KEY (uid) REFERENCES users(uid)
 );
 CREATE TABLE IF NOT EXISTS mclist(
-	mclistid int,
+	quizid int,
 	mid INT,
 	FOREIGN KEY (mid) REFERENCES multiple(id),
-	FOREIGN KEY (mclistid) REFERENCES quizzes(quizid),
-	PRIMARY KEY(mclistid,mid)
+	FOREIGN KEY (quizid) REFERENCES quizzes(quizid),
+	PRIMARY KEY(quizid,mid)
 );
 CREATE TABLE IF NOT EXISTS slist(
-	slistid int,
+	quizid int,
 	sid INT,
 	FOREIGN KEY (sid) REFERENCES short(id),
-	FOREIGN KEY (slistid) REFERENCES quizzes(quizid),
-	PRIMARY KEY(slistid,sid)
+	FOREIGN KEY (quizid) REFERENCES quizzes(quizid),
+	PRIMARY KEY(quizid,sid)
 );
 CREATE TABLE IF NOT EXISTS tflist(
-	tflistid int,
+	quizid int,
 	tfid INT,
 	FOREIGN KEY (tfid) REFERENCES tf(id),
-	FOREIGN KEY (tflistid) REFERENCES quizzes(quizid),
-	PRIMARY KEY(tflistid,tfid)
+	FOREIGN KEY (quizid) REFERENCES quizzes(quizid),
+	PRIMARY KEY(quizid,tfid)
 )

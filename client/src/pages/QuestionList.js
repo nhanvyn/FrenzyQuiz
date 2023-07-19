@@ -1,49 +1,49 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link, NavLink } from "react-router-dom";
-
-var qList = [
-  {
-    qid: 1,
-    type: "short",
-    question: "What is nodeJS used for?",
-    answer: "to create server-side web applications",
-    time: 30,
-    points: 100,
-  },
-  {
-    qid: 2,
-    type: "multiple",
-    question: " 2+2",
-    o1: "1",
-    o2: "2",
-    o3: "3",
-    o4: "4",
-    answer: "4",
-    time: 30,
-    points: 100,
-  },
-];
+import { useParams } from "react-router";
+import apiUrl from "../api-config";
 
 function QuesitonList() {
-  let questions = [];
-  for (let i = 0; i < qList.length; i++) {
-    questions.push(qList[i].question);
+  const [questions, setQuestion] = useState([]);
+
+  const params = useParams();
+
+  const fetchQuestions = async () => {
+    try {
+      const responsee = await fetch(`${apiUrl}/getQuestions/${params.id}`);
+      const data = await responsee.json();
+      console.log("Fetched questions:", data);
+      setQuestion(data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  let mc = [];
+  for (let i = 0; i < questions.length; i++) {
+    mc.push(questions[i].question);
   }
-  console.log(qList);
+  console.log(mc);
+  useEffect(() => {
+    fetchQuestions();
+  }, []);
+  //console.log(questions);
+
   return (
     <>
       <h1>NOT YET IMPLEMENTED</h1>
       <h2>Questions</h2>
-      <ul>
-        {questions.map((temp, index) => (
-          <li key={index} className="d-flex ">
-            {temp}
-          </li>
+      <div>
+        <h3>MC Questions</h3>
+        {mc.map((q, index) => (
+          <li key={index}>{q}</li>
         ))}
-      </ul>
-
+      </div>
       <button>
-        <NavLink activeclassname="active" className="nav-link" to="/Create">
+        <NavLink
+          activeclassname="active"
+          className="nav-link"
+          to={"/Create/" + params.id}
+        >
           Add Question
         </NavLink>
       </button>

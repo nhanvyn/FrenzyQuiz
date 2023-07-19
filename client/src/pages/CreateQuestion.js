@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
 import QuesitonList from "./QuestionList";
+import apiUrl from "../api-config";
+import { useParams } from "react-router";
+import { useNavigate } from "react-router-dom";
 
-var id = 0;
 function CreateQuestion() {
   const [type, setType] = useState("multiple");
   const [question, setQuestion] = useState("Add Question");
@@ -14,6 +16,8 @@ function CreateQuestion() {
   const [points, setPoints] = useState("");
   const [state, setState] = useState([]);
   const [temp, setTemp] = useState("");
+  const params = useParams();
+  const navigate = useNavigate();
 
   const box = {
     width: "300px",
@@ -21,12 +25,6 @@ function CreateQuestion() {
     padding: "50px",
     margin: "auto",
   };
-  /*
-  let quesions = [];
-  for (let i = 0; i < state.length; i++) {
-    quesions.push(state[i].question);
-  }
-*/
   const handleType = (event) => {
     setType(event.target.value);
   };
@@ -54,13 +52,13 @@ function CreateQuestion() {
   const handlePoints = (event) => {
     setPoints(event.target.value);
   };
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     var target = event.target;
     var input;
     if (type == "multiple") {
       input = {
-        id: id,
+        id: params.id,
         type: target.type.value,
         question: target.question.value,
         o1: target.option1.value,
@@ -73,7 +71,7 @@ function CreateQuestion() {
       };
     } else {
       input = {
-        id: id,
+        id: params.id,
         type: target.type.value,
         question: target.question.value,
         answer: target.answer.value,
@@ -81,12 +79,26 @@ function CreateQuestion() {
         points: target.points.value,
       };
     }
-    id++;
 
-    setState((prevState) => [...prevState, input]);
+    var data = JSON.stringify(input);
+
+    try {
+      await fetch(`${apiUrl}/createQuestion`, {
+        method: "POST",
+        headers: {
+          "Content-type": "application/json; charset=UTF-8",
+        },
+        body: data,
+      })
+        .then((response) => {
+          return response.json();
+        })
+        .then(console.log("Question added"))
+        .then(navigate(-1));
+    } catch (err) {
+      console.error(err.message);
+    }
     console.log(state);
-    setTemp(input);
-    //console.log(quesions);
   };
   const handle = (event) => {
     setTemp("hello world");
@@ -294,9 +306,6 @@ function CreateQuestion() {
               Add Quesiton
             </button>
           </form>
-          <button onClick={handle} className="btn btn-primary btn-block mb-4">
-            Finish Quiz
-          </button>
         </div>
       </div>
     </>

@@ -37,8 +37,6 @@ pool.connect((err) => {
   }
 });
 
-
-
 let rooms = {};
 
 io.on("connection", (socket) => {
@@ -56,7 +54,7 @@ io.on("connection", (socket) => {
       // const quiz = quizzes.find((quiz) => quiz.id == data.quizId); // this will be replace with endpoint to database later
       rooms[data.quizId] = {
         players: [],
-        quiz: data.quiz
+        quiz: data.quiz,
       };
     }
 
@@ -81,7 +79,6 @@ io.on("connection", (socket) => {
 
     // send a list of updated players to all players
     io.in(data.quizId).emit("display_new_player", rooms[data.quizId].players);
-
   });
 
   socket.on("leave_room", (data) => {
@@ -95,9 +92,8 @@ io.on("connection", (socket) => {
     // disconnect player from this room
     socket.leave(data.quizId);
 
-    // update new player list 
+    // update new player list
     io.in(data.quizId).emit("display_new_player", rooms[data.quizId].players);
-
   });
 
   // homepage use this to find previously joined room
@@ -131,14 +127,13 @@ io.on("connection", (socket) => {
   });
 
   // check if a room exist before joining player
-  socket.on('check_room_exists', (data) => {
+  socket.on("check_room_exists", (data) => {
     if (rooms[data.quizId]) {
-      socket.emit('room_exists', true);
+      socket.emit("room_exists", true);
     } else {
-      socket.emit('room_exists', false);
+      socket.emit("room_exists", false);
     }
   });
-
 });
 
 app.get("/", (req, res) => {
@@ -188,12 +183,26 @@ app.get("/users/:uid", async (req, res) => {
 
 app.post("/createQuiz", async (req, res) => {
   try {
+    await pool.query(`CREATE TABLE IF NOT EXISTS quizzes(
+      quizid SERIAL PRIMARY KEY,
+      uid varchar(255),
+      tname varchar(255),
+      created TIMESTAMP,
+      FOREIGN KEY (uid) REFERENCES users(uid)
+  );`);
     const result = await pool.query(
       `INSERT INTO
     quizzes (tname,uid,created)
     VALUES ($1,$2,CURRENT_TIMESTAMP) RETURNING *`,
       [req.body.name, req.body.tid]
     );
+    await pool.query(
+      `INSERT INTO
+    quizzes (tname,uid,created)
+    VALUES ($1,$2,CURRENT_TIMESTAMP) RETURNING *`,
+      [req.body.name, req.body.tid]
+    );
+
     var input = [result.rows[0]["quizid"]];
     console.log("id is: " + input);
   } catch (e) {
@@ -201,7 +210,88 @@ app.post("/createQuiz", async (req, res) => {
   }
   res.json(input);
 });
+//adding a question
+app.post("/createQuestion", async (req, res) => {
+  try {
+    if (req.body.type == "multiple") {
+      const mc = await pool.query(
+        `INSERT INTO multiple
+        (question,answer,option1,option2,option3,option4,sec,points)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
+        [
+          req.body.question,
+          req.body.answer,
+          req.body.o1,
+          req.body.o2,
+          req.body.o3,
+          req.body.o4,
+          req.body.time,
+          req.body.points,
+        ]
+      );
+      await pool.query(
+        `INSERT INTO mclist
+        (quizid,mid)
+      VALUES ($1,$2) RETURNING *`,
+        [req.body.id, mc.rows[0]["id"]]
+      );
 
+      console.log("multiple");
+    } else if (req.body.type == "short") {
+      const short = await pool.query(
+        `INSERT INTO short
+        (question,answer,sec,points)
+      VALUES ($1,$2,$3,$4) RETURNING *`,
+        [req.body.question, req.body.answer, req.body.time, req.body.points]
+      );
+      await pool.query(
+        `INSERT INTO slist
+        (quizid,sid)
+      VALUES ($1,$2) RETURNING *`,
+        [req.body.id, short.rows[0]["id"]]
+      );
+      console.log("short");
+    } else if (req.body.type == "tf") {
+      const tf = await pool.query(
+        `INSERT INTO tf
+        (question,answer,sec,points)
+      VALUES ($1,$2,$3,$4) RETURNING *`,
+        [req.body.question, req.body.answer, req.body.time, req.body.points]
+      );
+      await pool.query(
+        `INSERT INTO tflist
+        (quizid,tfid)
+      VALUES ($1,$2) RETURNING *`,
+        [req.body.id, tf.rows[0]["id"]]
+      );
+      console.log("tf");
+    }
+  } catch (e) {
+    console.log(e);
+  }
+});
+
+app.get("/getQuestions/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const getQuestions = `
+    SELECT question, quizid 
+    FROM multiple
+    INNER JOIN mclist
+    ON multiple.id = mclist.mid
+    WHERE quizid = $1;
+    `;
+
+    const result = await pool.query(getQuestions, [id]);
+    console.log(result.rows[0]);
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      error: "Server Error getting the list of user's created quizzes. ",
+    });
+  }
+});
 
 // Getting List of User's Created Quizzes
 app.get("/getCreatedQuiz/:uid", async (req, res) => {
@@ -217,7 +307,9 @@ app.get("/getCreatedQuiz/:uid", async (req, res) => {
     res.json(result.rows);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Server Error getting the list of user's created quizzes. " })
+    res.status(500).json({
+      error: "Server Error getting the list of user's created quizzes. ",
+    });
   }
 });
 
@@ -238,6 +330,6 @@ app.get("/quizzes/:quizId", async (req, res) => {
   }
 });
 
-server.listen(port, '0.0.0.0', () => {
+server.listen(port, "0.0.0.0", () => {
   console.log(`Server is running on PORT ${port}`);
 });
