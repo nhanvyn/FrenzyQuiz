@@ -6,20 +6,23 @@ const { Server } = require("socket.io");
 const cors = require("cors");
 const app = express();
 dotenv.config();
-
-// Define allowed origins for cors
-const allowedOrigins = ["http://localhost:3000", "http://35.193.138.187"];
-app.use(cors({ origin: allowedOrigins }));
-
+app.use(cors());
 app.use(express.json());
 
 const server = http.createServer(app);
 
+const admin = require("firebase-admin");
+const serviceAccount = require("./serviceAccountKey.json");
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+});
+
 const io = new Server(server, {
   cors: {
-    origin: "*",
+    origin: "http://localhost:3000",
   },
 });
+
 const port = process.env.PORT || 3500;
 
 const pool = new Pool({
@@ -36,6 +39,8 @@ pool.connect((err) => {
     console.log("db connected");
   }
 });
+
+
 
 let rooms = {};
 
@@ -54,7 +59,7 @@ io.on("connection", (socket) => {
       // const quiz = quizzes.find((quiz) => quiz.id == data.quizId); // this will be replace with endpoint to database later
       rooms[data.quizId] = {
         players: [],
-        quiz: data.quiz,
+        quiz: data.quiz
       };
     }
 
@@ -92,8 +97,9 @@ io.on("connection", (socket) => {
     // disconnect player from this room
     socket.leave(data.quizId);
 
-    // update new player list
+    // update new player list 
     io.in(data.quizId).emit("display_new_player", rooms[data.quizId].players);
+
   });
 
   // homepage use this to find previously joined room
@@ -127,22 +133,16 @@ io.on("connection", (socket) => {
   });
 
   // check if a room exist before joining player
-  socket.on("check_room_exists", (data) => {
+  socket.on('check_room_exists', (data) => {
     if (rooms[data.quizId]) {
-      socket.emit("room_exists", true);
+      socket.emit('room_exists', true);
     } else {
-      socket.emit("room_exists", false);
+      socket.emit('room_exists', false);
     }
   });
+
 });
 
-app.get("/", (req, res) => {
-  res.send("Hello World!");
-});
-
-app.get("/protected", (req, res) => {
-  res.send("Hello!");
-});
 
 app.post("/register", async (req, res) => {
   try {
@@ -180,142 +180,55 @@ app.get("/users/:uid", async (req, res) => {
 });
 
 //login route
+var idTok;
+app.post("/login", async (req, res, next) => {
+    try {
+        const idToken = req.body.token.toString();
+        idTok = idToken;
+    } catch (err) {
+        console.error(err.message);
+    }
+    next();
+});
+
+app.get("/logout", async (req, res, next) => {
+    idTok = undefined;
+    res.send("Logout Successful")
+});
+
+//verify middleware
+async function verifyToken(req, res, next) {
+    try {
+        const decodeToken = await admin.auth().verifyIdToken(idTok);
+        console.log(decodeToken);
+        next();
+    } catch(err) {
+        res.status(401).send("You are not authorized");
+    }
+}
+
+//protected  route
+app.get("/protected", verifyToken, async (req, res) => {
+    res.send("protected");
+});
+
 
 app.post("/createQuiz", async (req, res) => {
   try {
-    await pool.query(`CREATE TABLE IF NOT EXISTS quizzes(
-      quizid SERIAL PRIMARY KEY,
-      uid varchar(255),
-      tname varchar(255),
-      created TIMESTAMP,
-      FOREIGN KEY (uid) REFERENCES users(uid)
-  );`);
     const result = await pool.query(
       `INSERT INTO
     quizzes (tname,uid,created)
     VALUES ($1,$2,CURRENT_TIMESTAMP) RETURNING *`,
       [req.body.name, req.body.tid]
     );
-    var input = result.rows;
-    console.log("id is: " + input[0]["quizid"]);
+    var input = [result.rows[0]["quizid"]];
+    console.log("id is: " + input);
   } catch (e) {
     console.error(e);
   }
   res.json(input);
 });
-//adding a question
-app.post("/createQuestion", async (req, res) => {
-  try {
-    if (req.body.type == "multiple") {
-      const mc = await pool.query(
-        `INSERT INTO multiple
-        (question,answer,option1,option2,option3,option4,sec,points,type)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
-        [
-          req.body.question,
-          req.body.answer,
-          req.body.o1,
-          req.body.o2,
-          req.body.o3,
-          req.body.o4,
-          req.body.time,
-          req.body.points,
-          req.body.type,
-        ]
-      );
-      await pool.query(
-        `INSERT INTO mclist
-        (quizid,mid,qnum)
-      VALUES ($1,$2,$3) RETURNING *`,
-        [req.body.id, mc.rows[0]["id"], req.body.qnum]
-      );
 
-      console.log("multiple");
-    } else if (req.body.type == "short") {
-      const short = await pool.query(
-        `INSERT INTO short
-        (question,answer,sec,points,type)
-      VALUES ($1,$2,$3,$4,$5) RETURNING *`,
-        [
-          req.body.question,
-          req.body.answer,
-          req.body.time,
-          req.body.points,
-          req.body.type,
-        ]
-      );
-      await pool.query(
-        `INSERT INTO slist
-        (quizid,sid,qnum)
-      VALUES ($1,$2,$3) RETURNING *`,
-        [req.body.id, short.rows[0]["id"], req.body.qnum]
-      );
-      console.log("short");
-    } else if (req.body.type == "tf") {
-      const tf = await pool.query(
-        `INSERT INTO tf
-        (question,answer,sec,points,type)
-      VALUES ($1,$2,$3,$4,$5) RETURNING *`,
-        [
-          req.body.question,
-          req.body.answer,
-          req.body.time,
-          req.body.points,
-          req.body.type,
-        ]
-      );
-      await pool.query(
-        `INSERT INTO tflist
-        (quizid,tfid,qnum)
-      VALUES ($1,$2,$3) RETURNING *`,
-        [req.body.id, tf.rows[0]["id"], req.body.qnum]
-      );
-      console.log("tf");
-    }
-  } catch (e) {
-    console.log(e);
-  }
-});
-
-app.get("/getQuestions/:id", async (req, res) => {
-  try {
-    const id = req.params.id;
-    const getMc = `
-    SELECT question, quizid , qnum 
-    FROM multiple
-    INNER JOIN mclist
-    ON multiple.id = mclist.mid
-    WHERE quizid = $1;
-    `;
-    const getShort = `
-    SELECT question, quizid , qnum 
-    FROM short
-    INNER JOIN slist
-    ON short.id = slist.sid
-    WHERE quizid = $1;
-    `;
-    const getTF = `
-    SELECT question, quizid , qnum 
-    FROM tf
-    INNER JOIN tflist
-    ON tf.id = tflist.tfid
-    WHERE quizid = $1;
-    `;
-
-    const mc = await pool.query(getMc, [id]);
-    const short = await pool.query(getShort, [id]);
-    const tf = await pool.query(getTF, [id]);
-    const total = [mc.rows, short.rows, tf.rows];
-    console.log(total);
-    console.log(mc.rows[0]);
-    res.json(total);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({
-      error: "Server Error getting the list of user's created quizzes. ",
-    });
-  }
-});
 
 // Getting List of User's Created Quizzes
 app.get("/getCreatedQuiz/:uid", async (req, res) => {
@@ -331,9 +244,7 @@ app.get("/getCreatedQuiz/:uid", async (req, res) => {
     res.json(result.rows);
   } catch (err) {
     console.error(err);
-    res.status(500).json({
-      error: "Server Error getting the list of user's created quizzes. ",
-    });
+    res.status(500).json({ error: "Server Error getting the list of user's created quizzes. " })
   }
 });
 
@@ -354,52 +265,7 @@ app.get("/quizzes/:quizId", async (req, res) => {
   }
 });
 
-app.get("/quiz/:quidId/question/:questionNum", async (req, res) => {
-  try {
-    const params = req.params;
-    const getMc = `
-      SELECT quizid, qnum, multiple.*
-      FROM multiple
-      INNER JOIN mclist
-      ON multiple.id = mclist.mid
-      WHERE quizid = $1 AND qnum = $2;
-    `;
-    const getShort = `
-      SELECT quizid, qnum, short.*
-      FROM short
-      INNER JOIN slist
-      ON short.id = slist.sid
-      WHERE quizid = $1 AND qnum = $2;
-    `;
-    const getTF = `
-      SELECT quizid, qnum, tf.*
-      FROM tf
-      INNER JOIN tflist
-      ON tf.id = tflist.tfid
-      WHERE quizid = $1 AND qnum = $2;
-    `;
-
-    const mcResult = await pool.query(getMc, [params.quidId, params.questionNum]);
-    if (mcResult.rows.length > 0) {
-      res.json(mcResult.rows[0]);
-    } else {
-      const shortResult = await pool.query(getShort, [params.quidId, params.questionNum]);
-      if (shortResult.rows.length > 0) {
-        res.json(shortResult.rows[0]);
-      } else {
-        const tfResult = await pool.query(getTF, [params.quidId, params.questionNum]);
-        if (tfResult.rows.length > 0) {
-          res.json(tfResult.rows[0]);
-        }
-      }
-    }
-    console.log(params.quidId, params.questionNum);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).json({ error: "Server error" });
-  }
-});
-
-server.listen(port, "0.0.0.0", () => {
-  console.log(`Server is running on PORT ${port}`);
+server.listen(port, () => {
+  console.log(`Server is running at http://localhost:${port}`);
+  console.log(process.env.DB_USER);
 });
