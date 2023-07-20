@@ -196,15 +196,8 @@ app.post("/createQuiz", async (req, res) => {
     VALUES ($1,$2,CURRENT_TIMESTAMP) RETURNING *`,
       [req.body.name, req.body.tid]
     );
-    await pool.query(
-      `INSERT INTO
-    quizzes (tname,uid,created)
-    VALUES ($1,$2,CURRENT_TIMESTAMP) RETURNING *`,
-      [req.body.name, req.body.tid]
-    );
-
-    var input = [result.rows[0]["quizid"]];
-    console.log("id is: " + input);
+    var input = result.rows;
+    console.log("id is: " + input[0]["quizid"]);
   } catch (e) {
     console.error(e);
   }
@@ -231,9 +224,9 @@ app.post("/createQuestion", async (req, res) => {
       );
       await pool.query(
         `INSERT INTO mclist
-        (quizid,mid)
-      VALUES ($1,$2) RETURNING *`,
-        [req.body.id, mc.rows[0]["id"]]
+        (quizid,mid,qnum)
+      VALUES ($1,$2,$3) RETURNING *`,
+        [req.body.id, mc.rows[0]["id"], req.body.qnum]
       );
 
       console.log("multiple");
@@ -246,9 +239,9 @@ app.post("/createQuestion", async (req, res) => {
       );
       await pool.query(
         `INSERT INTO slist
-        (quizid,sid)
-      VALUES ($1,$2) RETURNING *`,
-        [req.body.id, short.rows[0]["id"]]
+        (quizid,sid,qnum)
+      VALUES ($1,$2,$3) RETURNING *`,
+        [req.body.id, short.rows[0]["id"], req.body.qnum]
       );
       console.log("short");
     } else if (req.body.type == "tf") {
@@ -260,9 +253,9 @@ app.post("/createQuestion", async (req, res) => {
       );
       await pool.query(
         `INSERT INTO tflist
-        (quizid,tfid)
-      VALUES ($1,$2) RETURNING *`,
-        [req.body.id, tf.rows[0]["id"]]
+        (quizid,tfid,qnum)
+      VALUES ($1,$2,$3) RETURNING *`,
+        [req.body.id, tf.rows[0]["id"], req.body.qnum]
       );
       console.log("tf");
     }
@@ -274,17 +267,35 @@ app.post("/createQuestion", async (req, res) => {
 app.get("/getQuestions/:id", async (req, res) => {
   try {
     const id = req.params.id;
-    const getQuestions = `
-    SELECT question, quizid 
+    const getMc = `
+    SELECT question, quizid , qnum 
     FROM multiple
     INNER JOIN mclist
     ON multiple.id = mclist.mid
     WHERE quizid = $1;
     `;
+    const getShort = `
+    SELECT question, quizid , qnum 
+    FROM short
+    INNER JOIN slist
+    ON short.id = slist.sid
+    WHERE quizid = $1;
+    `;
+    const getTF = `
+    SELECT question, quizid , qnum 
+    FROM tf
+    INNER JOIN tflist
+    ON tf.id = tflist.tfid
+    WHERE quizid = $1;
+    `;
 
-    const result = await pool.query(getQuestions, [id]);
-    console.log(result.rows[0]);
-    res.json(result.rows);
+    const mc = await pool.query(getMc, [id]);
+    const short = await pool.query(getShort, [id]);
+    const tf = await pool.query(getTF, [id]);
+    const total = [mc.rows, short.rows, tf.rows];
+    console.log(total);
+    console.log(mc.rows[0]);
+    res.json(total);
   } catch (err) {
     console.error(err);
     res.status(500).json({

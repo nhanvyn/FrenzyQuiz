@@ -68,6 +68,7 @@ function CreateQuestion() {
         answer: target.answer.value,
         time: target.time.value,
         points: target.points.value,
+        qnum: params.qnum,
       };
     } else {
       input = {
@@ -77,6 +78,7 @@ function CreateQuestion() {
         answer: target.answer.value,
         time: target.time.value,
         points: target.points.value,
+        qnum: params.qnum,
       };
     }
 
@@ -287,6 +289,7 @@ function CreateQuestion() {
                 name="time"
                 className="w-25 col"
                 onChange={handleTime}
+                required
               ></input>
             </div>
 
@@ -299,6 +302,7 @@ function CreateQuestion() {
                 name="points"
                 className="w-25 col"
                 onChange={handlePoints}
+                required
               ></input>
             </div>
 

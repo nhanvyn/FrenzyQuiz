@@ -18,31 +18,68 @@ function QuesitonList() {
       console.error(err);
     }
   };
+  let total = 0;
   let mc = [];
+  let short = [];
+  let tf = [];
+  let mcDisp = [];
+  let sDisp = [];
+  let tfDisp = [];
   for (let i = 0; i < questions.length; i++) {
-    mc.push(questions[i].question);
+    if (i == 0) {
+      mc = questions[0];
+    }
+    if (i == 1) {
+      short = questions[1];
+    }
+    if (i == 2) {
+      tf = questions[2];
+    }
   }
-  console.log(mc);
+
+  for (let i = 0; i < mc.length; i++) {
+    mcDisp.push(mc[i]["question"]);
+  }
+  for (let i = 0; i < short.length; i++) {
+    sDisp.push(short[i]["question"]);
+  }
+  for (let i = 0; i < tf.length; i++) {
+    tfDisp.push(tf[i]["question"]);
+  }
+  total = mc.length + short.length + tf.length;
+
+  console.log("size is " + total);
   useEffect(() => {
     fetchQuestions();
   }, []);
-  //console.log(questions);
 
   return (
     <>
-      <h1>NOT YET IMPLEMENTED</h1>
+      <h1>{params.name}</h1>
       <h2>Questions</h2>
       <div>
         <h3>MC Questions</h3>
-        {mc.map((q, index) => (
-          <li key={index}>{q}</li>
+        {mcDisp.map((q, index) => (
+          <li key={index}>{q + " Question Order: " + mc[index]["qnum"]}</li>
+        ))}
+      </div>
+      <div>
+        <h3>Short Answer Questions</h3>
+        {sDisp.map((q, index) => (
+          <li key={index}>{q + " Question Order: " + short[index]["qnum"]}</li>
+        ))}
+      </div>
+      <div>
+        <h3>TF Questions</h3>
+        {tfDisp.map((q, index) => (
+          <li key={index}>{q + " Question Order: " + tf[index]["qnum"]}</li>
         ))}
       </div>
       <button>
         <NavLink
           activeclassname="active"
           className="nav-link"
-          to={"/Create/" + params.id}
+          to={"/Create/" + params.id + "/" + total}
         >
           Add Question
         </NavLink>

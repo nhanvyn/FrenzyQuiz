@@ -44,6 +44,7 @@ CREATE TABLE IF NOT EXISTS quizzes(
 CREATE TABLE IF NOT EXISTS mclist(
 	quizid int,
 	mid INT,
+	qnum INT,
 	FOREIGN KEY (mid) REFERENCES multiple(id),
 	FOREIGN KEY (quizid) REFERENCES quizzes(quizid),
 	PRIMARY KEY(quizid,mid)
@@ -51,6 +52,7 @@ CREATE TABLE IF NOT EXISTS mclist(
 CREATE TABLE IF NOT EXISTS slist(
 	quizid int,
 	sid INT,
+	qnum INT,
 	FOREIGN KEY (sid) REFERENCES short(id),
 	FOREIGN KEY (quizid) REFERENCES quizzes(quizid),
 	PRIMARY KEY(quizid,sid)
@@ -58,6 +60,7 @@ CREATE TABLE IF NOT EXISTS slist(
 CREATE TABLE IF NOT EXISTS tflist(
 	quizid int,
 	tfid INT,
+	qnum INT,
 	FOREIGN KEY (tfid) REFERENCES tf(id),
 	FOREIGN KEY (quizid) REFERENCES quizzes(quizid),
 	PRIMARY KEY(quizid,tfid)
