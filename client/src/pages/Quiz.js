@@ -1,18 +1,33 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { SocketContext, UserContext } from '../App';
+import { UserContext } from '../App';
 import apiUrl from "../api-config";
 
 const Quiz = () => {
     const [selectedOption, setSelectedOption] = useState(null);
     const [timer, setTimer] = useState(null);
     const [timeRemaining, setTimeRemaining] = useState(null);
+    const [question, setQuestion] = useState([]);
     const { user } = useContext(UserContext);
-    const { quiz_id } = useParams();
+    const params = useParams();
 
     const handleOptionClick = (option) => {
         setSelectedOption(option);
     };
+
+    useEffect(() => {
+        const fetchQuestion = async () => {
+            const response = await fetch(`${apiUrl}/quiz/${params.id}/question/${params.num}`);
+            const data = await response.json();
+            console.log("quizdata = ", data);
+            setQuestion(data);
+        };
+
+        if (user && params) {
+            fetchQuestion();
+        }
+    }, [user, params]);
+
 
     // DUMMY DATA
     const question1 = {
@@ -35,7 +50,7 @@ const Quiz = () => {
         time: 30,
         points: 100
     };
-    const question = {
+    const question3 = {
         question_number: 3,
         type: "tf",
         question: "2+2=4",
@@ -55,52 +70,22 @@ const Quiz = () => {
         margin: "auto",
     };
 
-    useEffect(() => {
-        // GET QUESTION HERE
-        setTimeRemaining(question.time);
-    }, [user]);
-
-    useEffect(() => {
-        if (timeRemaining === 0) {
-          // Timer has reached 0, perform action (e.g., submit quiz)
-          handleTimerFinish();
-        }
-    }, [timeRemaining]);
-
-    useEffect(() => {
-        if (timeRemaining !== null) {
-          setTimer(setInterval(() => {
-            setTimeRemaining(prevTime => prevTime - 1);
-          }, 1000));
-        }
-    
-        return () => {
-          clearInterval(timer);
-        };
-    }, [timeRemaining]);
-
-    const handleTimerFinish = () => {
-        // Perform action when timer finishes (e.g., submit quiz)
-        clearInterval(timer);
-        // ...
-    };
-
     return (
         <div className='app'>
-            <h1 className="d-flex justify-content-center">Question #{question.question_number}</h1>
+            <h1 className="d-flex justify-content-center">Question #{question.qnum}</h1>
             <div className="row d-flex justify-content-center align-items-center">
                 <div className="col-6 bg-light">
                     <div>
-                    <div className="progress">
-                        <div
-                            className="progress-bar"
-                            role="progressbar"
-                            style={{ width: `${(timeRemaining / question.time) * 100}%` }}
-                            aria-valuenow={timeRemaining}
-                            aria-valuemin="0"
-                            aria-valuemax={question.time}
-                        ></div>
-                    </div>
+                        {/* <div className="progress">
+                            <div
+                                className="progress-bar"
+                                role="progressbar"
+                                style={{ width: `${(timeRemaining / question.time) * 100}%` }}
+                                aria-valuenow={timeRemaining}
+                                aria-valuemin="0"
+                                aria-valuemax={question.time}
+                            ></div>
+                        </div> */}
                         <h3 className="row d-flex justify-content-center">{question.question}</h3>
                         {question.type === "multiple" && (
                             <>
@@ -150,13 +135,13 @@ const Quiz = () => {
                                 <div className=" mt-auto ">
                                     <div className="row ">
                                         <p className="col d-flex justify-content-center border border-dark "
-                                            onClick={() => handleOptionClick(question.optionTrue)}
-                                            style={{ backgroundColor: selectedOption === question.optionTrue ? 'yellow' : 'white' }}>
+                                            onClick={() => handleOptionClick("True")}
+                                            style={{ backgroundColor: selectedOption === "True" ? 'yellow' : 'white' }}>
                                             True
                                         </p>
                                         <p className="col d-flex justify-content-center border border-dark"
-                                            onClick={() => handleOptionClick(question.optionFalse)}
-                                            style={{ backgroundColor: selectedOption === question.optionFalse ? 'yellow' : 'white' }}>
+                                            onClick={() => handleOptionClick("False")}
+                                            style={{ backgroundColor: selectedOption === "False" ? 'yellow' : 'white' }}>
                                             False
                                         </p>
                                     </div>

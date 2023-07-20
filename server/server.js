@@ -354,6 +354,52 @@ app.get("/quizzes/:quizId", async (req, res) => {
   }
 });
 
+app.get("/quiz/:quidId/question/:questionNum", async (req, res) => {
+  try {
+    const params = req.params;
+    const getMc = `
+      SELECT quizid, qnum, multiple.*
+      FROM multiple
+      INNER JOIN mclist
+      ON multiple.id = mclist.mid
+      WHERE quizid = $1 AND qnum = $2;
+    `;
+    const getShort = `
+      SELECT quizid, qnum, short.*
+      FROM short
+      INNER JOIN slist
+      ON short.id = slist.sid
+      WHERE quizid = $1 AND qnum = $2;
+    `;
+    const getTF = `
+      SELECT quizid, qnum, tf.*
+      FROM tf
+      INNER JOIN tflist
+      ON tf.id = tflist.tfid
+      WHERE quizid = $1 AND qnum = $2;
+    `;
+
+    const mcResult = await pool.query(getMc, [params.quidId, params.questionNum]);
+    if (mcResult.rows.length > 0) {
+      res.json(mcResult.rows[0]);
+    } else {
+      const shortResult = await pool.query(getShort, [params.quidId, params.questionNum]);
+      if (shortResult.rows.length > 0) {
+        res.json(shortResult.rows[0]);
+      } else {
+        const tfResult = await pool.query(getTF, [params.quidId, params.questionNum]);
+        if (tfResult.rows.length > 0) {
+          res.json(tfResult.rows[0]);
+        }
+      }
+    }
+    console.log(params.quidId, params.questionNum);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 server.listen(port, "0.0.0.0", () => {
   console.log(`Server is running on PORT ${port}`);
 });

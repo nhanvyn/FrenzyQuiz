@@ -75,7 +75,7 @@ function App() {
                 <Route path="/Quiz/:id/:name" element={<QuesitonList />} />
                 <Route path="/Create/:id/:qnum" element={<CreateQuestion />} />
                 <Route path="/Quizzes" element={<Quizzes />} />
-                <Route path="/Quiz" element={<Quiz />} />
+                <Route path="/Quiz/:id/Question/:num" element={<Quiz />} />
               </Routes>
             </div>
           </BrowserRouter>
