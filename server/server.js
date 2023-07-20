@@ -209,8 +209,8 @@ app.post("/createQuestion", async (req, res) => {
     if (req.body.type == "multiple") {
       const mc = await pool.query(
         `INSERT INTO multiple
-        (question,answer,option1,option2,option3,option4,sec,points)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
+        (question,answer,option1,option2,option3,option4,sec,points,type)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
         [
           req.body.question,
           req.body.answer,
@@ -220,6 +220,7 @@ app.post("/createQuestion", async (req, res) => {
           req.body.o4,
           req.body.time,
           req.body.points,
+          req.body.type,
         ]
       );
       await pool.query(
@@ -233,9 +234,15 @@ app.post("/createQuestion", async (req, res) => {
     } else if (req.body.type == "short") {
       const short = await pool.query(
         `INSERT INTO short
-        (question,answer,sec,points)
-      VALUES ($1,$2,$3,$4) RETURNING *`,
-        [req.body.question, req.body.answer, req.body.time, req.body.points]
+        (question,answer,sec,points,type)
+      VALUES ($1,$2,$3,$4,$5) RETURNING *`,
+        [
+          req.body.question,
+          req.body.answer,
+          req.body.time,
+          req.body.points,
+          req.body.type,
+        ]
       );
       await pool.query(
         `INSERT INTO slist
@@ -247,9 +254,15 @@ app.post("/createQuestion", async (req, res) => {
     } else if (req.body.type == "tf") {
       const tf = await pool.query(
         `INSERT INTO tf
-        (question,answer,sec,points)
-      VALUES ($1,$2,$3,$4) RETURNING *`,
-        [req.body.question, req.body.answer, req.body.time, req.body.points]
+        (question,answer,sec,points,type)
+      VALUES ($1,$2,$3,$4,$5) RETURNING *`,
+        [
+          req.body.question,
+          req.body.answer,
+          req.body.time,
+          req.body.points,
+          req.body.type,
+        ]
       );
       await pool.query(
         `INSERT INTO tflist

@@ -11,7 +11,8 @@ CREATE TABLE IF NOT EXISTS  short (
 	question TEXT,
 	answer TEXT,
 	sec INT,
-	points INT
+	points INT,
+	type VARCHAR(16)
 );
 CREATE TABLE IF NOT EXISTS  multiple (
 	id SERIAL PRIMARY KEY,
@@ -22,14 +23,16 @@ CREATE TABLE IF NOT EXISTS  multiple (
 	option4 VARCHAR(255),
 	answer VARCHAR(255),
 	sec INT,
-	points INT
+	points INT,
+	type VARCHAR(16)
 	);
 CREATE TABLE IF NOT EXISTS tf (
 	id SERIAL PRIMARY KEY,
 	question TEXT,
 	answer TEXT,
 	sec INT,
-	points INT
+	points INT,
+	type VARCHAR(16)
 );
 CREATE TABLE IF NOT EXISTS quizzes(
     quizid SERIAL PRIMARY KEY,
