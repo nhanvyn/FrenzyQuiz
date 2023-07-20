@@ -1,49 +1,86 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link, NavLink } from "react-router-dom";
-
-var qList = [
-  {
-    qid: 1,
-    type: "short",
-    question: "What is nodeJS used for?",
-    answer: "to create server-side web applications",
-    time: 30,
-    points: 100,
-  },
-  {
-    qid: 2,
-    type: "multiple",
-    question: " 2+2",
-    o1: "1",
-    o2: "2",
-    o3: "3",
-    o4: "4",
-    answer: "4",
-    time: 30,
-    points: 100,
-  },
-];
+import { useParams } from "react-router";
+import apiUrl from "../api-config";
 
 function QuesitonList() {
-  let questions = [];
-  for (let i = 0; i < qList.length; i++) {
-    questions.push(qList[i].question);
+  const [questions, setQuestion] = useState([]);
+
+  const params = useParams();
+
+  const fetchQuestions = async () => {
+    try {
+      const responsee = await fetch(`${apiUrl}/getQuestions/${params.id}`);
+      const data = await responsee.json();
+      console.log("Fetched questions:", data);
+      setQuestion(data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  let total = 0;
+  let mc = [];
+  let short = [];
+  let tf = [];
+  let mcDisp = [];
+  let sDisp = [];
+  let tfDisp = [];
+  for (let i = 0; i < questions.length; i++) {
+    if (i == 0) {
+      mc = questions[0];
+    }
+    if (i == 1) {
+      short = questions[1];
+    }
+    if (i == 2) {
+      tf = questions[2];
+    }
   }
-  console.log(qList);
+
+  for (let i = 0; i < mc.length; i++) {
+    mcDisp.push(mc[i]["question"]);
+  }
+  for (let i = 0; i < short.length; i++) {
+    sDisp.push(short[i]["question"]);
+  }
+  for (let i = 0; i < tf.length; i++) {
+    tfDisp.push(tf[i]["question"]);
+  }
+  total = mc.length + short.length + tf.length;
+
+  console.log("size is " + total);
+  useEffect(() => {
+    fetchQuestions();
+  }, []);
+
   return (
     <>
-      <h1>NOT YET IMPLEMENTED</h1>
+      <h1>{params.name}</h1>
       <h2>Questions</h2>
-      <ul>
-        {questions.map((temp, index) => (
-          <li key={index} className="d-flex ">
-            {temp}
-          </li>
+      <div>
+        <h3>MC Questions</h3>
+        {mcDisp.map((q, index) => (
+          <li key={index}>{q + " Question Order: " + mc[index]["qnum"]}</li>
         ))}
-      </ul>
-
+      </div>
+      <div>
+        <h3>Short Answer Questions</h3>
+        {sDisp.map((q, index) => (
+          <li key={index}>{q + " Question Order: " + short[index]["qnum"]}</li>
+        ))}
+      </div>
+      <div>
+        <h3>TF Questions</h3>
+        {tfDisp.map((q, index) => (
+          <li key={index}>{q + " Question Order: " + tf[index]["qnum"]}</li>
+        ))}
+      </div>
       <button>
-        <NavLink activeclassname="active" className="nav-link" to="/Create">
+        <NavLink
+          activeclassname="active"
+          className="nav-link"
+          to={"/Create/" + params.id + "/" + total}
+        >
           Add Question
         </NavLink>
       </button>

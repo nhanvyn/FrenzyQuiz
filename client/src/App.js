@@ -72,8 +72,8 @@ function App() {
                 <Route path="/Register" element={<Register />} />
                 <Route path="/StudentQuizList" element={<StudentQuizList />} />
                 <Route path="/StudentQuizDetail/:id" element={<StudentQuizDetail />} />
-                <Route path="/Quiz/:id" element={<QuesitonList />} />
-                <Route path="/Create" element={<CreateQuestion />} />
+                <Route path="/Quiz/:id/:name" element={<QuesitonList />} />
+                <Route path="/Create/:id/:qnum" element={<CreateQuestion />} />
                 <Route path="/Quizzes" element={<Quizzes />} />
                 <Route path="/Quiz" element={<Quiz />} />
               </Routes>
