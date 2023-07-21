@@ -14,7 +14,7 @@ const server = http.createServer(app);
 const admin = require("firebase-admin");
 const serviceAccount = require("./serviceAccountKey.json");
 admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
+  credential: admin.credential.cert(serviceAccount),
 });
 
 const io = new Server(server, {
@@ -40,8 +40,6 @@ pool.connect((err) => {
   }
 });
 
-
-
 let rooms = {};
 
 io.on("connection", (socket) => {
@@ -59,7 +57,7 @@ io.on("connection", (socket) => {
       // const quiz = quizzes.find((quiz) => quiz.id == data.quizId); // this will be replace with endpoint to database later
       rooms[data.quizId] = {
         players: [],
-        quiz: data.quiz
+        quiz: data.quiz,
       };
     }
 
@@ -97,9 +95,8 @@ io.on("connection", (socket) => {
     // disconnect player from this room
     socket.leave(data.quizId);
 
-    // update new player list 
+    // update new player list
     io.in(data.quizId).emit("display_new_player", rooms[data.quizId].players);
-
   });
 
   // homepage use this to find previously joined room
@@ -133,16 +130,14 @@ io.on("connection", (socket) => {
   });
 
   // check if a room exist before joining player
-  socket.on('check_room_exists', (data) => {
+  socket.on("check_room_exists", (data) => {
     if (rooms[data.quizId]) {
-      socket.emit('room_exists', true);
+      socket.emit("room_exists", true);
     } else {
-      socket.emit('room_exists', false);
+      socket.emit("room_exists", false);
     }
   });
-
 });
-
 
 app.post("/register", async (req, res) => {
   try {
@@ -182,36 +177,35 @@ app.get("/users/:uid", async (req, res) => {
 //login route
 var idTok;
 app.post("/login", async (req, res, next) => {
-    try {
-        const idToken = req.body.token.toString();
-        idTok = idToken;
-    } catch (err) {
-        console.error(err.message);
-    }
-    next();
+  try {
+    const idToken = req.body.token.toString();
+    idTok = idToken;
+  } catch (err) {
+    console.error(err.message);
+  }
+  next();
 });
 
 app.get("/logout", async (req, res, next) => {
-    idTok = undefined;
-    res.send("Logout Successful")
+  idTok = undefined;
+  res.send("Logout Successful");
 });
 
 //verify middleware
 async function verifyToken(req, res, next) {
-    try {
-        const decodeToken = await admin.auth().verifyIdToken(idTok);
-        console.log(decodeToken);
-        next();
-    } catch(err) {
-        res.status(401).send("You are not authorized");
-    }
+  try {
+    const decodeToken = await admin.auth().verifyIdToken(idTok);
+    console.log(decodeToken);
+    next();
+  } catch (err) {
+    res.status(401).send("You are not authorized");
+  }
 }
 
 //protected  route
 app.get("/protected", verifyToken, async (req, res) => {
-    res.send("protected");
+  res.send("protected");
 });
-
 
 app.post("/createQuiz", async (req, res) => {
   try {
@@ -229,7 +223,6 @@ app.post("/createQuiz", async (req, res) => {
   res.json(input);
 });
 
-
 // Getting List of User's Created Quizzes
 app.get("/getCreatedQuiz/:uid", async (req, res) => {
   try {
@@ -244,7 +237,11 @@ app.get("/getCreatedQuiz/:uid", async (req, res) => {
     res.json(result.rows);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Server Error getting the list of user's created quizzes. " })
+    res
+      .status(500)
+      .json({
+        error: "Server Error getting the list of user's created quizzes. ",
+      });
   }
 });
 
@@ -262,6 +259,22 @@ app.get("/quizzes/:quizId", async (req, res) => {
   } catch (err) {
     console.error(err.message);
     res.status(500).json({ error: "Server error" });
+  }
+});
+
+//delete quiz by id
+app.delete("/quizzes/:quizId", async (req, res) => {
+  try {
+    var qid = req.params.quizId;
+    const deleteQuiz = await pool.query(
+      "DELETE FROM quizzes WHERE quizid = $1;",
+      [qid]
+    );
+    res.json("deleted");
+    console.log(deleteQuiz);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Cant Delete Quiz" });
   }
 });
 
