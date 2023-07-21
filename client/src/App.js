@@ -10,11 +10,8 @@ import StudentQuizList from "./pages/StudentQuizList";
 import StudentQuizDetail from "./pages/StudentQuizDetail";
 import QuesitonList from "./pages/QuestionList";
 import CreateQuestion from "./pages/CreateQuestion";
-<<<<<<< Updated upstream
 import Quiz from "./pages/Quiz";
-=======
 import Leaderboard from "./pages/Leaderboard";
->>>>>>> Stashed changes
 
 import io from "socket.io-client";
 import { onAuthStateChanged } from "firebase/auth";
@@ -79,11 +76,8 @@ function App() {
                 <Route path="/Quiz/:id/:name" element={<QuesitonList />} />
                 <Route path="/Create/:id/:qnum" element={<CreateQuestion />} />
                 <Route path="/Quizzes" element={<Quizzes />} />
-<<<<<<< Updated upstream
                 <Route path="/Quiz/:id/Question/:num" element={<Quiz />} />
-=======
                 <Route path="/Leaderboard" element={<Leaderboard />} />
->>>>>>> Stashed changes
               </Routes>
             </div>
           </BrowserRouter>
