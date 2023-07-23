@@ -16,16 +16,17 @@ const Quiz = () => {
     };
 
     useEffect(() => {
-        const fetchQuestion = async () => {
-            const response = await fetch(`${apiUrl}/quiz/${params.id}/question/${params.num}`);
-            const data = await response.json();
-            console.log("quizdata = ", data);
-            setQuestion(data);
-        };
+        // const fetchQuestion = async () => {
+        //     const response = await fetch(`${apiUrl}/quiz/${params.id}/question/${params.num}`);
+        //     const data = await response.json();
+        //     console.log("quizdata = ", data);
+        //     setQuestion(data);
+        // };
 
-        if (user && params) {
-            fetchQuestion();
-        }
+        // if (user && params) {
+        //     fetchQuestion();
+        // }
+        setQuestion(question3)
     }, [user, params]);
 
 

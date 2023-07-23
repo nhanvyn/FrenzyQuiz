@@ -58,6 +58,7 @@ io.on("connection", (socket) => {
       rooms[data.quizId] = {
         players: [],
         quiz: data.quiz,
+        status: "waiting"
       };
     }
 
@@ -136,6 +137,12 @@ io.on("connection", (socket) => {
     } else {
       socket.emit("room_exists", false);
     }
+  });
+
+  // start the game
+  socket.on("start_quiz", (data) => {
+    console.log("start quiz receiverd")
+    io.in(data.quizId).emit("next_question")
   });
 });
 
@@ -222,8 +229,10 @@ app.post("/createQuiz", async (req, res) => {
     VALUES ($1,$2,CURRENT_TIMESTAMP) RETURNING *`,
       [req.body.name, req.body.tid]
     );
-    var input = result.rows;
-    console.log("id is: " + input[0]["quizid"]);
+    // var input = [result.rows[0]["quizid"]];
+    input = [result.rows[0]];
+
+    console.log("id is: " + input);
   } catch (e) {
     console.error(e);
   }
@@ -445,6 +454,91 @@ app.delete("/quizzes/:quizId", async (req, res) => {
     res.status(500).json({ error: "Cant Delete Quiz" });
   }
 });
+
+
+
+
+
+// app.get("/questions/:quizid", async (req, res) => {
+//   res.send("what eawad up");
+// });
+
+app.get('/questions/:quizid', async (req, res) => {
+  try {
+    const quizFetchQuery = `
+    WITH multiple_choice AS (
+      SELECT 
+          mclist.quizid, 
+          jsonb_agg(jsonb_build_object(
+              'type', 'multiple',
+              'id', id,
+              'question', question,
+              'options', jsonb_build_array(option1, option2, option3, option4),
+              'answer', answer,
+              'sec', sec,
+              'points', points,
+              'order', mclist.qnum
+          )) AS multiple
+      FROM mclist JOIN multiple ON mclist.mid = multiple.id
+      WHERE quizid = $1
+      GROUP BY mclist.quizid
+  ),
+  short_answers AS (
+      SELECT 
+          slist.quizid, 
+          jsonb_agg(jsonb_build_object(
+              'type', 'short',
+              'id', id,
+              'question', question,
+              'answer', answer,
+              'sec', sec,
+              'points', points,
+              'order', slist.qnum
+          )) AS short
+      FROM slist JOIN short ON slist.sid = short.id
+      WHERE quizid = $1
+      GROUP BY slist.quizid
+  ),
+  true_false AS (
+      SELECT 
+          tflist.quizid, 
+          jsonb_agg(jsonb_build_object(
+              'type', 'tf',
+              'id', id,
+              'question', question,
+              'answer', answer,
+              'sec', sec,
+              'points', points,
+              'order', tflist.qnum
+          )) AS tf
+      FROM tflist JOIN tf ON tflist.tfid = tf.id
+      WHERE quizid = $1
+      GROUP BY tflist.quizid
+  )
+  SELECT 
+      q.quizid,
+      q.uid,
+      q.tname,
+      TO_CHAR(q.created, 'YYYY-MM-DD HH24:MI:SS') AS created,
+      COALESCE(m.multiple, '[]'::jsonb) AS multiple,
+      COALESCE(s.short, '[]'::jsonb) AS short,
+      COALESCE(t.tf, '[]'::jsonb) AS tf
+  FROM quizzes q
+  LEFT JOIN multiple_choice m ON m.quizid = q.quizid
+  LEFT JOIN short_answers s ON s.quizid = q.quizid
+  LEFT JOIN true_false t ON t.quizid = q.quizid
+  WHERE q.quizid = $1;`
+    
+    const quizResult = await pool.query(quizFetchQuery, [req.params.quizid]);
+    console.log("quiz result is ", quizResult.rows[0])
+    res.status(200).json(quizResult.rows[0]);
+  }
+  catch (error) {
+    console.log(error);
+    res.status(500).json({ message: 'Server error', error: error.toString() });
+  }
+});
+
 
 server.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);

@@ -77,6 +77,7 @@ function App() {
                 <Route path="/Create/:id/:qnum" element={<CreateQuestion />} />
                 <Route path="/Quizzes" element={<Quizzes />} />
                 <Route path="/Quiz/:id/Question/:num" element={<Quiz />} />
+                <Route path="/Quiz/:id/" element={<Quiz />} />
                 <Route path="/Leaderboard" element={<Leaderboard />} />
               </Routes>
             </div>
