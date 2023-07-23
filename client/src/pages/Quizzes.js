@@ -28,8 +28,8 @@ function Quizzes() {
         .then((response) => {
           return response.json();
         })
-        .then(() =>
-          navigate("/QuizList")
+        .then((data) =>
+        navigate("/Quiz/" + data[0].quizid + "/" + data[0].tname)
         )
         .then(console.log("quiz made"));
     } catch (err) {
