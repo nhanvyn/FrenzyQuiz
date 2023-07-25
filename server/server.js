@@ -1,6 +1,7 @@
 const { Pool } = require("pg");
 const dotenv = require("dotenv");
 const express = require("express");
+const axios = require('axios');
 const http = require("http");
 const { Server } = require("socket.io");
 const cors = require("cors");
@@ -58,7 +59,9 @@ io.on("connection", (socket) => {
       rooms[data.quizId] = {
         players: [],
         quiz: data.quiz,
-        status: "waiting"
+        status: "waiting",
+        questions: [],
+        currentQuestion: 0
       };
     }
 
@@ -140,9 +143,31 @@ io.on("connection", (socket) => {
   });
 
   // start the game
-  socket.on("start_quiz", (data) => {
+  async function fetchQuestions(quizId) {
+    try {
+      const response = await axios.get(`http://localhost:3500/questions/${quizId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching questions:', error.message);
+      throw error;
+    }
+  }
+  
+  socket.on("start_quiz",  async (data) => {
     console.log("start quiz receiverd")
-    io.in(data.quizId).emit("next_question")
+    // init the room[data.quizid].questions with questions retrieve from db
+    fetchQuestions(data.quizId)
+    .then((questions) => {
+      rooms[data.quizId].questions = questions.sortedQuestions;
+      rooms[data.quizId].currentQuestionIndex = 0;
+    // send the first question
+    console.log("send the first question:", rooms[data.quizId].questions[0])
+    console.log("check data.quizid:", data.quizId, typeof data.quizId)
+      io.in(data.quizId).emit("next_question", rooms[data.quizId].questions[0]);
+    })
+    .catch((error) => {
+      console.log("fetch question failed, ", error)
+    });
   });
 });
 
@@ -477,7 +502,7 @@ app.get('/questions/:quizid', async (req, res) => {
               'answer', answer,
               'sec', sec,
               'points', points,
-              'order', mclist.qnum
+              'qnum', mclist.qnum
           )) AS multiple
       FROM mclist JOIN multiple ON mclist.mid = multiple.id
       WHERE quizid = $1
@@ -493,7 +518,7 @@ app.get('/questions/:quizid', async (req, res) => {
               'answer', answer,
               'sec', sec,
               'points', points,
-              'order', slist.qnum
+              'qnum', slist.qnum
           )) AS short
       FROM slist JOIN short ON slist.sid = short.id
       WHERE quizid = $1
@@ -509,7 +534,7 @@ app.get('/questions/:quizid', async (req, res) => {
               'answer', answer,
               'sec', sec,
               'points', points,
-              'order', tflist.qnum
+              'qnum', tflist.qnum
           )) AS tf
       FROM tflist JOIN tf ON tflist.tfid = tf.id
       WHERE quizid = $1
@@ -531,7 +556,14 @@ app.get('/questions/:quizid', async (req, res) => {
     
     const quizResult = await pool.query(quizFetchQuery, [req.params.quizid]);
     console.log("quiz result is ", quizResult.rows[0])
-    res.status(200).json(quizResult.rows[0]);
+    const quizData = quizResult.rows[0];
+    // Merge all question types into one array
+    const allQuestions = [...quizData.multiple, ...quizData.short, ...quizData.tf];
+    // Sort the array by the 'qnum' field
+    allQuestions.sort((a, b) => a.qnum - b.qnum);
+    quizData.sortedQuestions = allQuestions;
+    // res.status(200).json(quizResult.rows[0]);
+    res.status(200).json(quizData);
   }
   catch (error) {
     console.log(error);

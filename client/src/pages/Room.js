@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { useParams } from 'react-router-dom';
 import QRCode from 'qrcode.react';
-import { SocketContext, UserContext } from '../App';
+import { SocketContext, UserContext, QuizContext} from '../App';
 import { useNavigate } from 'react-router-dom';
 import apiUrl from "../api-config";
 
@@ -12,9 +12,10 @@ const Room = () => {
   const [players, setPlayers] = useState([])
   const socket = useContext(SocketContext)
   const {user} = useContext(UserContext)
+  const {currentQuestion, setCurrentQuestion} = useContext(QuizContext)
 
   const startQuiz = (quizId) => {
-    socket.emit('start_quiz', {quizId: quizId})
+    socket.emit('start_quiz', {quizId: Number(quizId)})
     console.log("start the quiz")
   };
 
@@ -59,28 +60,30 @@ const Room = () => {
         setPlayers(data)
       };
 
-      // const handleUpdateQuiz = (data) => {
-      //   console.log("display quiz:", data)
-      //   setQuiz(data)
-      // }
-
       const handleRoomDeleted = (data) => {
         console.log("this room is deleted")
         navigate(`/`)
       }
+      
+      const handleNextQuestion = (data) => {
+        console.log("next quesion arrived in Room.js:", data)
+        // send player to main quiz 
+        setCurrentQuestion(data)
+        navigate(`/quiz/${id}`)
+        
+
+      };
 
       socket.on("display_new_player", handleDisplayPlayer);
-
-      // socket.on("update_quiz", handleUpdateQuiz);
-
+ 
       socket.on("room_deleted", handleRoomDeleted);
 
+      socket.on("next_question", handleNextQuestion);
 
       return () => {
         socket.off("display_new_player", handleDisplayPlayer);
-        // socket.off("update_quiz", handleUpdateQuiz);
-        socket.off('room_deleted');
-        console.log("Called")
+        socket.off('room_deleted', handleRoomDeleted);
+        socket.off('next_question', handleNextQuestion);
       };
     }
   }, [socket, id]);
