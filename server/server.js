@@ -510,6 +510,10 @@ app.get('/questions/:quizid', async (req, res) => {
       SELECT 
           mclist.quizid, 
           jsonb_agg(jsonb_build_object(
+              'quizid', mclist.quizid,
+              'uid', q.uid,
+              'tname', q.tname,
+              'created', TO_CHAR(q.created, 'YYYY-MM-DD HH24:MI:SS'),
               'type', 'multiple',
               'id', id,
               'question', question,
@@ -520,13 +524,18 @@ app.get('/questions/:quizid', async (req, res) => {
               'qnum', mclist.qnum
           )) AS multiple
       FROM mclist JOIN multiple ON mclist.mid = multiple.id
-      WHERE quizid = $1
-      GROUP BY mclist.quizid
+      JOIN quizzes q ON q.quizid = mclist.quizid
+      WHERE mclist.quizid = $1
+      GROUP BY mclist.quizid, q.uid, q.tname, q.created
   ),
   short_answers AS (
       SELECT 
           slist.quizid, 
           jsonb_agg(jsonb_build_object(
+              'quizid', slist.quizid,
+              'uid', q.uid,
+              'tname', q.tname,
+              'created', TO_CHAR(q.created, 'YYYY-MM-DD HH24:MI:SS'),
               'type', 'short',
               'id', id,
               'question', question,
@@ -536,13 +545,18 @@ app.get('/questions/:quizid', async (req, res) => {
               'qnum', slist.qnum
           )) AS short
       FROM slist JOIN short ON slist.sid = short.id
-      WHERE quizid = $1
-      GROUP BY slist.quizid
+      JOIN quizzes q ON q.quizid = slist.quizid
+      WHERE slist.quizid = $1
+      GROUP BY slist.quizid, q.uid, q.tname, q.created
   ),
   true_false AS (
       SELECT 
           tflist.quizid, 
           jsonb_agg(jsonb_build_object(
+              'quizid', tflist.quizid,
+              'uid', q.uid,
+              'tname', q.tname,
+              'created', TO_CHAR(q.created, 'YYYY-MM-DD HH24:MI:SS'),
               'type', 'tf',
               'id', id,
               'question', question,
@@ -552,8 +566,9 @@ app.get('/questions/:quizid', async (req, res) => {
               'qnum', tflist.qnum
           )) AS tf
       FROM tflist JOIN tf ON tflist.tfid = tf.id
-      WHERE quizid = $1
-      GROUP BY tflist.quizid
+      JOIN quizzes q ON q.quizid = tflist.quizid
+      WHERE tflist.quizid = $1
+      GROUP BY tflist.quizid, q.uid, q.tname, q.created
   )
   SELECT 
       q.quizid,
