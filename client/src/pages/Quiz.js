@@ -7,7 +7,9 @@ import Timer from './Timer';
 const Quiz = () => {
     const [selectedOption, setSelectedOption] = useState(null);
     const [question, setQuestion] = useState([]);
+    const [creator,  setCreator] = useState(null);
     const [timer, setTimer] = useState(null);
+    const [submitted, setSubmitted] = useState(false);
     const { user } = useContext(UserContext);
     const params = useParams();
     const navigate = useNavigate();
@@ -22,6 +24,7 @@ const Quiz = () => {
             const data = await response.json();
             console.log("quizdata = ", data);
             setQuestion(data);
+            setCreator(data.uid === user.uid);
             setTimer(data.sec * 1000); // convert s -> ms
         };
 
@@ -31,40 +34,43 @@ const Quiz = () => {
     }, [user, params]);
 
     const handleSubmit = async (event) => {
-        event.preventDefault();
-        var target = event.target;
+        if (event) {
+            event.preventDefault();
+        }
+
+        setSubmitted(true);
+        var target = event ? event.target : null;
         var input;
         if (question.type === 'tf') {
-            // input = { submitted: selectedOption, correct: selectedOption === question.answer ? true : false };
+            input = { uid: user.uid, type: question.type, submitted: selectedOption, correct: selectedOption === question.answer ? true : false };
         } else if (question.type === 'multiple') {
-            // input = { submitted: selectedOption, correct: selectedOption === question.answer ? true : false };
+            input = { uid: user.uid, type: question.type, submitted: selectedOption, correct: selectedOption === question.answer ? true : false };
         } else if (question.type === 'short') {
-            // input = { submitted: selectedOption, correct: selectedOption === question.answer ? true : false };
+            input = { uid: user.uid, type: question.type, submitted: target.answer.value, correct: target.answer.value === question.answer ? true : false };
         }
         var data = JSON.stringify(input);
 
         try {
-            await fetch(`${apiUrl}/quiz/${params.id}/question/${params.num}/submitAnswer`, {
+            await fetch(`${apiUrl}/quiz/${params.id}/question/${question.id}/submitAnswer`, {
                 method: "POST",
                 headers: {
                   "Content-type": "application/json; charset=UTF-8",
                 },
                 body: data,
             });
-
-            const response = await fetch(`${apiUrl}/quiz/${params.id}/question/${params.num}/submitAnswer`);
-            const data = await response.json();
-            console.log("quizdata = ", data);
+            console.log("Submitted Data: ", data);
         } catch (err) {
             console.error(err);
             console.log("Error Submitting question answer");
         }
         // navigate('/Quiz/65/Question/1');
-    }
+    };
 
-    // DUMMY DATA
-    // const creator = true;
-    const creator = false;
+    const handleTimerTimeout = () => {
+        if (!submitted && creator === false) {
+            handleSubmit();
+        }
+    };
 
     const box = {
         width: "300px",
@@ -80,7 +86,7 @@ const Quiz = () => {
                 <div className="row d-flex justify-content-center align-items-center">
                     <div className="col-6 bg-light">
                         <div>
-                            <Timer totalTime={timer} />
+                            <Timer totalTime={timer} onTimeout={handleTimerTimeout} />
                             <h3 className="row d-flex justify-content-center">{question.question}</h3>
                             {question.type === "multiple" && (
                                 <>
@@ -88,28 +94,32 @@ const Quiz = () => {
                                         <div className="row ">
                                             <p className={`col d-flex justify-content-center border border-dark 
                                                             ${creator && question.option1 === question.answer ? 'bg-success' : ''}`}
-                                                onClick={creator ? null : () => handleOptionClick(question.option1)}
-                                                style={{ backgroundColor: selectedOption === question.option1 ? 'yellow' : 'white' }}>
+                                                onClick={creator || submitted ? null : () => handleOptionClick(question.option1)}
+                                                style={{ backgroundColor: selectedOption === question.option1 ? 'yellow' : 'white' }}
+                                                value=''>
                                                 {question.option1}
                                             </p>
                                             <p className={`col d-flex justify-content-center border border-dark 
                                                             ${creator && question.option2 === question.answer ? 'bg-success' : ''}`}
-                                                onClick={creator ? null : () => handleOptionClick(question.option2)}
-                                                style={{ backgroundColor: selectedOption === question.option2 ? 'yellow' : 'white' }}>
+                                                onClick={creator || submitted ? null : () => handleOptionClick(question.option2)}
+                                                style={{ backgroundColor: selectedOption === question.option2 ? 'yellow' : 'white' }}
+                                                value=''>
                                                 {question.option2}
                                             </p>
                                         </div>
                                         <div className="row ">
                                             <p className={`col d-flex justify-content-center border border-dark 
                                                             ${creator && question.option3 === question.answer ? 'bg-success' : ''}`}
-                                                onClick={creator ? null : () => handleOptionClick(question.option3)}
-                                                style={{ backgroundColor: selectedOption === question.option3 ? 'yellow' : 'white' }}>
+                                                onClick={creator || submitted ? null : () => handleOptionClick(question.option3)}
+                                                style={{ backgroundColor: selectedOption === question.option3 ? 'yellow' : 'white' }}
+                                                value=''>
                                                 {question.option3}
                                             </p>
                                             <p className={`col d-flex justify-content-center border border-dark 
                                                             ${creator && question.option4 === question.answer ? 'bg-success' : ''}`}
-                                                onClick={creator ? null : () => handleOptionClick(question.option4)}
-                                                style={{ backgroundColor: selectedOption === question.option4 ? 'yellow' : 'white' }}>
+                                                onClick={creator || submitted ? null : () => handleOptionClick(question.option4)}
+                                                style={{ backgroundColor: selectedOption === question.option4 ? 'yellow' : 'white' }}
+                                                value=''>
                                                 {question.option4}
                                             </p>
                                         </div>
@@ -125,6 +135,7 @@ const Quiz = () => {
                                             className='col'
                                             style={box}
                                             required
+                                            disabled={creator || submitted}
                                         />
                                     </div>
                                 </>
@@ -135,13 +146,13 @@ const Quiz = () => {
                                         <div className="row ">
                                             <p className={`col d-flex justify-content-center border border-dark 
                                                             ${creator && question.answer === "true" ? 'bg-success' : ''}`}
-                                                onClick={creator ? null : () => handleOptionClick("True")}
+                                                onClick={creator || submitted ? null : () => handleOptionClick("true")}
                                                 style={{ backgroundColor: selectedOption === "true" ? 'yellow' : 'white' }}>
                                                 true
                                             </p>
                                             <p className={`col d-flex justify-content-center border border-dark 
                                                             ${creator && question.answer === "false" ? 'bg-success' : ''}`}
-                                                onClick={creator ? null : () => handleOptionClick("False")}
+                                                onClick={creator || submitted ? null : () => handleOptionClick("false")}
                                                 style={{ backgroundColor: selectedOption === "false" ? 'yellow' : 'white' }}>
                                                 false
                                             </p>
@@ -156,7 +167,15 @@ const Quiz = () => {
                                 </>
                             ) : (
                                 <>
-                                    <button type="submit" className="btn btn-primary btn-sm mt-2 ml-2">Submit</button>
+                                    {!submitted ? (
+                                        <>
+                                            <button type="submit" className="btn btn-primary btn-sm mt-2 ml-2">Submit</button>
+                                        </>
+                                    ) : (
+                                        <div>
+                                            <strong className='text-primary'>Answer Submitted</strong>
+                                        </div>
+                                    )}
                                 </>
                             )}
                         </div>
