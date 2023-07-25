@@ -28,9 +28,10 @@ function Quizzes() {
         .then((response) => {
           return response.json();
         })
-        .then((data) =>
-        navigate("/Quiz/" + data[0].quizid + "/" + data[0].tname)
-        )
+        .then((data) =>{
+          console.log("print quiz just created: ", data)
+          navigate("/Quiz/" + data[0].quizid + "/" + data[0].tname)
+        })
         .then(console.log("quiz made"));
     } catch (err) {
       console.error(err.message);

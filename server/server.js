@@ -1,6 +1,7 @@
 const { Pool } = require("pg");
 const dotenv = require("dotenv");
 const express = require("express");
+const axios = require('axios');
 const http = require("http");
 const { Server } = require("socket.io");
 const cors = require("cors");
@@ -58,6 +59,9 @@ io.on("connection", (socket) => {
       rooms[data.quizId] = {
         players: [],
         quiz: data.quiz,
+        status: "waiting",
+        questions: [],
+        currentQuestion: 0
       };
     }
 
@@ -136,6 +140,34 @@ io.on("connection", (socket) => {
     } else {
       socket.emit("room_exists", false);
     }
+  });
+
+  // start the game
+  async function fetchQuestions(quizId) {
+    try {
+      const response = await axios.get(`http://localhost:3500/questions/${quizId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching questions:', error.message);
+      throw error;
+    }
+  }
+  
+  socket.on("start_quiz",  async (data) => {
+    console.log("start quiz receiverd")
+    // init the room[data.quizid].questions with questions retrieve from db
+    fetchQuestions(data.quizId)
+    .then((questions) => {
+      rooms[data.quizId].questions = questions.sortedQuestions;
+      rooms[data.quizId].currentQuestionIndex = 0;
+    // send the first question
+    console.log("send the first question:", rooms[data.quizId].questions[0])
+    console.log("check data.quizid:", data.quizId, typeof data.quizId)
+      io.in(data.quizId).emit("next_question", rooms[data.quizId].questions[0]);
+    })
+    .catch((error) => {
+      console.log("fetch question failed, ", error)
+    });
   });
 });
 
@@ -222,8 +254,10 @@ app.post("/createQuiz", async (req, res) => {
     VALUES ($1,$2,CURRENT_TIMESTAMP) RETURNING *`,
       [req.body.name, req.body.tid]
     );
-    var input = result.rows;
-    console.log("id is: " + input[0]["quizid"]);
+    // var input = [result.rows[0]["quizid"]];
+    input = [result.rows[0]];
+
+    console.log("id is: " + input);
   } catch (e) {
     console.error(e);
   }
@@ -460,6 +494,113 @@ app.delete("/quizzes/:quizId", async (req, res) => {
     res.status(500).json({ error: "Cant Delete Quiz" });
   }
 });
+
+
+
+
+
+// app.get("/questions/:quizid", async (req, res) => {
+//   res.send("what eawad up");
+// });
+
+app.get('/questions/:quizid', async (req, res) => {
+  try {
+    const quizFetchQuery = `
+    WITH multiple_choice AS (
+      SELECT 
+          mclist.quizid, 
+          jsonb_agg(jsonb_build_object(
+              'quizid', mclist.quizid,
+              'uid', q.uid,
+              'tname', q.tname,
+              'created', TO_CHAR(q.created, 'YYYY-MM-DD HH24:MI:SS'),
+              'type', 'multiple',
+              'id', id,
+              'question', question,
+              'options', jsonb_build_array(option1, option2, option3, option4),
+              'answer', answer,
+              'sec', sec,
+              'points', points,
+              'qnum', mclist.qnum
+          )) AS multiple
+      FROM mclist JOIN multiple ON mclist.mid = multiple.id
+      JOIN quizzes q ON q.quizid = mclist.quizid
+      WHERE mclist.quizid = $1
+      GROUP BY mclist.quizid, q.uid, q.tname, q.created
+  ),
+  short_answers AS (
+      SELECT 
+          slist.quizid, 
+          jsonb_agg(jsonb_build_object(
+              'quizid', slist.quizid,
+              'uid', q.uid,
+              'tname', q.tname,
+              'created', TO_CHAR(q.created, 'YYYY-MM-DD HH24:MI:SS'),
+              'type', 'short',
+              'id', id,
+              'question', question,
+              'answer', answer,
+              'sec', sec,
+              'points', points,
+              'qnum', slist.qnum
+          )) AS short
+      FROM slist JOIN short ON slist.sid = short.id
+      JOIN quizzes q ON q.quizid = slist.quizid
+      WHERE slist.quizid = $1
+      GROUP BY slist.quizid, q.uid, q.tname, q.created
+  ),
+  true_false AS (
+      SELECT 
+          tflist.quizid, 
+          jsonb_agg(jsonb_build_object(
+              'quizid', tflist.quizid,
+              'uid', q.uid,
+              'tname', q.tname,
+              'created', TO_CHAR(q.created, 'YYYY-MM-DD HH24:MI:SS'),
+              'type', 'tf',
+              'id', id,
+              'question', question,
+              'answer', answer,
+              'sec', sec,
+              'points', points,
+              'qnum', tflist.qnum
+          )) AS tf
+      FROM tflist JOIN tf ON tflist.tfid = tf.id
+      JOIN quizzes q ON q.quizid = tflist.quizid
+      WHERE tflist.quizid = $1
+      GROUP BY tflist.quizid, q.uid, q.tname, q.created
+  )
+  SELECT 
+      q.quizid,
+      q.uid,
+      q.tname,
+      TO_CHAR(q.created, 'YYYY-MM-DD HH24:MI:SS') AS created,
+      COALESCE(m.multiple, '[]'::jsonb) AS multiple,
+      COALESCE(s.short, '[]'::jsonb) AS short,
+      COALESCE(t.tf, '[]'::jsonb) AS tf
+  FROM quizzes q
+  LEFT JOIN multiple_choice m ON m.quizid = q.quizid
+  LEFT JOIN short_answers s ON s.quizid = q.quizid
+  LEFT JOIN true_false t ON t.quizid = q.quizid
+  WHERE q.quizid = $1;`
+    
+    const quizResult = await pool.query(quizFetchQuery, [req.params.quizid]);
+    console.log("quiz result is ", quizResult.rows[0])
+    const quizData = quizResult.rows[0];
+    // Merge all question types into one array
+    const allQuestions = [...quizData.multiple, ...quizData.short, ...quizData.tf];
+    // Sort the array by the 'qnum' field
+    allQuestions.sort((a, b) => a.qnum - b.qnum);
+    quizData.sortedQuestions = allQuestions;
+    // res.status(200).json(quizResult.rows[0]);
+    res.status(200).json(quizData);
+  }
+  catch (error) {
+    console.log(error);
+    res.status(500).json({ message: 'Server error', error: error.toString() });
+  }
+});
+
 
 server.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);

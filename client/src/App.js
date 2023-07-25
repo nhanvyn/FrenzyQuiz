@@ -22,10 +22,13 @@ import apiUrl from "./api-config";
 
 export const SocketContext = createContext();
 export const UserContext = createContext({});
+export const QuizContext = createContext();
+
 
 function App() {
   const [socket, setSocket] = useState(null);
   const [user, setUser] = useState(null);
+  const [currentQuestion, setCurrentQuestion] = useState(null);
   const [IsBeingRegistered, SetIsBeingRegistered] = useState(false)
 
   const fetchUserData = async (uid) => {
@@ -60,27 +63,31 @@ function App() {
     <>
       <UserContext.Provider value={{ user, setUser, fetchUserData, IsBeingRegistered, SetIsBeingRegistered }}>
         <SocketContext.Provider value={socket}>
-          <BrowserRouter>
-            <div className="App">
-              <Navbar />
+          <QuizContext.Provider value= {{currentQuestion, setCurrentQuestion}}>
+            <BrowserRouter>
+              <div className="App">
+                <Navbar />
 
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/Join" element={<Join />} />
-                <Route path="/QuizList" element={<QuizList />} />
-                <Route path="/Room/:id" element={<Room />} />
-                <Route path="/Login" element={<Login />} />
-                <Route path="/Register" element={<Register />} />
-                <Route path="/StudentQuizList" element={<StudentQuizList />} />
-                <Route path="/StudentQuizDetail/:id" element={<StudentQuizDetail />} />
-                <Route path="/Quiz/:id/:name" element={<QuesitonList />} />
-                <Route path="/Create/:id/:qnum" element={<CreateQuestion />} />
-                <Route path="/Quizzes" element={<Quizzes />} />
-                <Route path="/Quiz/:id/Question/:num" element={<Quiz />} />
-                <Route path="/Leaderboard" element={<Leaderboard />} />
-              </Routes>
-            </div>
-          </BrowserRouter>
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/Join" element={<Join />} />
+                  <Route path="/QuizList" element={<QuizList />} />
+                  <Route path="/Room/:id" element={<Room />} />
+                  <Route path="/Login" element={<Login />} />
+                  <Route path="/Register" element={<Register />} />
+                  <Route path="/StudentQuizList" element={<StudentQuizList />} />
+                  <Route path="/StudentQuizDetail/:id" element={<StudentQuizDetail />} />
+                  <Route path="/Quiz/:id/:name" element={<QuesitonList />} />
+                  <Route path="/Create/:id/:qnum" element={<CreateQuestion />} />
+                  <Route path="/Quizzes" element={<Quizzes />} />
+                  <Route path="/Quiz/:id/Question/:num" element={<Quiz />} />
+                  <Route path="/Quiz/:id/" element={<Quiz />} />
+                  <Route path="/Leaderboard" element={<Leaderboard />} />
+                </Routes>
+              </div>
+            </BrowserRouter>
+          </QuizContext.Provider>
+        
         </SocketContext.Provider>
       </UserContext.Provider>
     </>
