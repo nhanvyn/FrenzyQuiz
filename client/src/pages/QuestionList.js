@@ -26,13 +26,13 @@ function QuesitonList() {
   let sDisp = [];
   let tfDisp = [];
   for (let i = 0; i < questions.length; i++) {
-    if (i == 0) {
+    if (i === 0) {
       mc = questions[0];
     }
-    if (i == 1) {
+    if (i === 1) {
       short = questions[1];
     }
-    if (i == 2) {
+    if (i === 2) {
       tf = questions[2];
     }
   }

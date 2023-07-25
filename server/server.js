@@ -387,25 +387,25 @@ app.get("/quiz/:quidId/question/:questionNum", async (req, res) => {
   try {
     const params = req.params;
     const getMc = `
-      SELECT quizid, qnum, multiple.*
+      SELECT mclist.quizid, qnum, multiple.*, quizzes.uid
       FROM multiple
-      INNER JOIN mclist
-      ON multiple.id = mclist.mid
-      WHERE quizid = $1 AND qnum = $2;
+      INNER JOIN mclist ON multiple.id = mclist.mid
+      INNER JOIN quizzes ON mclist.quizid = quizzes.quizid 
+      WHERE mclist.quizid = $1 AND qnum = $2;
     `;
     const getShort = `
-      SELECT quizid, qnum, short.*
+      SELECT slist.quizid, qnum, short.*, quizzes.uid
       FROM short
-      INNER JOIN slist
-      ON short.id = slist.sid
-      WHERE quizid = $1 AND qnum = $2;
+      INNER JOIN slist ON short.id = slist.sid
+      INNER JOIN quizzes ON slist.quizid = quizzes.quizid 
+      WHERE slist.quizid = $1 AND qnum = $2;
     `;
     const getTF = `
-      SELECT quizid, qnum, tf.*
+      SELECT tflist.quizid, qnum, tf.*, quizzes.uid
       FROM tf
-      INNER JOIN tflist
-      ON tf.id = tflist.tfid
-      WHERE quizid = $1 AND qnum = $2;
+      INNER JOIN tflist ON tf.id = tflist.tfid
+      INNER JOIN quizzes ON tflist.quizid = quizzes.quizid 
+      WHERE tflist.quizid = $1 AND qnum = $2;
     `;
 
     const mcResult = await pool.query(getMc, [params.quidId, params.questionNum]);
@@ -429,7 +429,22 @@ app.get("/quiz/:quidId/question/:questionNum", async (req, res) => {
   }
 });
 
+app.post('/quiz/:qid/question/:questionId/submitAnswer', async (req, res) => {
+  try {
+    var quizId = req.params.qid;
+    var questionId = req.params.questionId;
+    var body = req.body;
 
+    const insertSubmittedAnswerQuery = `
+      INSERT INTO submitted (questionid, qtype, correct, submitted, quizid, uid) 
+      VALUES ($1, $2, $3, $4, $5, $6);
+    `;
+    await pool.query(insertSubmittedAnswerQuery, [questionId, body.type, body.correct, body.submitted, quizId, body.uid]);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ error: "Server error submitting answer" });
+  }
+});
 
 app.delete("/quizzes/:quizId", async (req, res) => {
   try {
