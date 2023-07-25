@@ -68,3 +68,15 @@ CREATE TABLE IF NOT EXISTS tflist(
 	FOREIGN KEY (quizid) REFERENCES quizzes(quizid),
 	PRIMARY KEY(quizid,tfid)
 )
+
+CREATE TABLE IF NOT EXISTS submitted (
+	id SERIAL PRIMARY KEY,
+	questionid INT NOT NULL,
+	qtype VARCHAR(16) NOT NULL,
+	correct BOOLEAN NOT NULL,
+	submitted VARCHAR(255),
+	quizid INT NOT NULL,
+	uid VARCHAR(255) NOT NULL,
+	FOREIGN KEY (quizid) REFERENCES quizzes(quizid) ON DELETE CASCADE,
+	FOREIGN KEY (uid) REFERENCES users(uid)
+)
