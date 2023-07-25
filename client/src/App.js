@@ -11,6 +11,7 @@ import StudentQuizDetail from "./pages/StudentQuizDetail";
 import QuesitonList from "./pages/QuestionList";
 import CreateQuestion from "./pages/CreateQuestion";
 import Quiz from "./pages/Quiz";
+import Leaderboard from "./pages/Leaderboard";
 
 import io from "socket.io-client";
 import { onAuthStateChanged } from "firebase/auth";
@@ -76,6 +77,7 @@ function App() {
                 <Route path="/Create/:id/:qnum" element={<CreateQuestion />} />
                 <Route path="/Quizzes" element={<Quizzes />} />
                 <Route path="/Quiz/:id/Question/:num" element={<Quiz />} />
+                <Route path="/Leaderboard" element={<Leaderboard />} />
               </Routes>
             </div>
           </BrowserRouter>

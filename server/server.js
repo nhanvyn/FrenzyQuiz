@@ -6,20 +6,23 @@ const { Server } = require("socket.io");
 const cors = require("cors");
 const app = express();
 dotenv.config();
-
-// Define allowed origins for cors
-const allowedOrigins = ["http://localhost:3000", "http://35.193.138.187"];
-app.use(cors({ origin: allowedOrigins }));
-
+app.use(cors());
 app.use(express.json());
 
 const server = http.createServer(app);
 
+const admin = require("firebase-admin");
+const serviceAccount = require("./serviceAccountKey.json");
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
+
 const io = new Server(server, {
   cors: {
-    origin: "*",
+    origin: "http://localhost:3000",
   },
 });
+
 const port = process.env.PORT || 3500;
 
 const pool = new Pool({
@@ -136,14 +139,6 @@ io.on("connection", (socket) => {
   });
 });
 
-app.get("/", (req, res) => {
-  res.send("Hello World!");
-});
-
-app.get("/protected", (req, res) => {
-  res.send("Hello!");
-});
-
 app.post("/register", async (req, res) => {
   try {
     const uid = req.body.userid;
@@ -180,6 +175,37 @@ app.get("/users/:uid", async (req, res) => {
 });
 
 //login route
+var idTok;
+app.post("/login", async (req, res, next) => {
+  try {
+    const idToken = req.body.token.toString();
+    idTok = idToken;
+  } catch (err) {
+    console.error(err.message);
+  }
+  next();
+});
+
+app.get("/logout", async (req, res, next) => {
+  idTok = undefined;
+  res.send("Logout Successful");
+});
+
+//verify middleware
+async function verifyToken(req, res, next) {
+  try {
+    const decodeToken = await admin.auth().verifyIdToken(idTok);
+    console.log(decodeToken);
+    next();
+  } catch (err) {
+    res.status(401).send("You are not authorized");
+  }
+}
+
+//protected  route
+app.get("/protected", verifyToken, async (req, res) => {
+  res.send("protected");
+});
 
 app.post("/createQuiz", async (req, res) => {
   try {
@@ -203,6 +229,7 @@ app.post("/createQuiz", async (req, res) => {
   }
   res.json(input);
 });
+
 //adding a question
 app.post("/createQuestion", async (req, res) => {
   try {
@@ -277,6 +304,7 @@ app.post("/createQuestion", async (req, res) => {
   }
 });
 
+
 app.get("/getQuestions/:id", async (req, res) => {
   try {
     const id = req.params.id;
@@ -316,7 +344,6 @@ app.get("/getQuestions/:id", async (req, res) => {
     });
   }
 });
-
 // Getting List of User's Created Quizzes
 app.get("/getCreatedQuiz/:uid", async (req, res) => {
   try {
@@ -337,6 +364,7 @@ app.get("/getCreatedQuiz/:uid", async (req, res) => {
   }
 });
 
+
 // find the quiz that match quiz id
 app.get("/quizzes/:quizId", async (req, res) => {
   try {
@@ -354,6 +382,7 @@ app.get("/quizzes/:quizId", async (req, res) => {
   }
 });
 
+//delete quiz by id
 app.get("/quiz/:quidId/question/:questionNum", async (req, res) => {
   try {
     const params = req.params;
@@ -417,6 +446,22 @@ app.post('/quiz/:qid/question/:questionId/submitAnswer', async (req, res) => {
   }
 });
 
-server.listen(port, "0.0.0.0", () => {
-  console.log(`Server is running on PORT ${port}`);
+app.delete("/quizzes/:quizId", async (req, res) => {
+  try {
+    var qid = req.params.quizId;
+    const deleteQuiz = await pool.query(
+      "DELETE FROM quizzes WHERE quizid = $1;",
+      [qid]
+    );
+    res.json("deleted");
+    console.log(deleteQuiz);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Cant Delete Quiz" });
+  }
+});
+
+server.listen(port, () => {
+  console.log(`Server is running at http://localhost:${port}`);
+  console.log(process.env.DB_USER);
 });

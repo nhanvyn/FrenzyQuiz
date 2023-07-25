@@ -85,6 +85,9 @@ const Room = () => {
         <div className="col-lg-6 col-md-12">
           <h3> {"Quiz id:" + quiz?.quizid + " - " + " question: " + quiz?.tname}</h3>
           <QRCode value={`http://localhost:3000/Room/${id}`} size={256*2} />
+          <button type="submit" className="btn btn-success btn-block mb-4">
+            Start the game
+          </button>
         </div>
 
         <div className="col-lg-6 col-md-12">

@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { SocketContext, UserContext } from '../App';
+import React, { useState, useEffect, useContext } from "react";
+import { useNavigate } from "react-router-dom";
+import { SocketContext, UserContext } from "../App";
 import apiUrl from "../api-config";
 
 const QuizList = () => {
@@ -10,12 +10,12 @@ const QuizList = () => {
   const [quizzes, setQuizzes] = useState([]);
 
   useEffect(() => {
-    // need to retrieve all quizzes here 
+    // need to retrieve all quizzes here
     const fetchQuizzes = async () => {
       try {
         const responsee = await fetch(`${apiUrl}/getCreatedQuiz/${user.uid}`);
         const data = await responsee.json();
-        console.log('Fetched quizzes:', data);
+        console.log("Fetched quizzes:", data);
         setQuizzes(data);
       } catch (err) {
         console.error(err);
@@ -25,41 +25,72 @@ const QuizList = () => {
     if (socket && user) {
       fetchQuizzes();
     }
-  }, [socket, user])
+  }, [socket, user]);
 
   const startQuiz = (quizId) => {
-    // todo: 
+    // todo:
     // create a quiz room on server
 
-    navigate(`/Room/${quizId}`)
+    navigate(`/Room/${quizId}`);
   };
+
+  //delete Quiz
+  const deleteQuiz = async (quizId) => {
+    try {
+      const response = await fetch(`${apiUrl}/quizzes/${quizId}`, {
+        method: "DELETE"
+      });
+      setQuizzes(quizzes.filter((q) => q.quizid !== quizId));
+    } catch (err) {
+      console.error(err.message);
+    }
+  };
+
   return (
-    <div className='app'>
+    <div className="app">
       <div className="container w-75">
-        <h3 className='textcenter'>Created Quizzes:</h3>
+        <h3 className="textcenter">Created Quizzes:</h3>
         <div className="list-group">
-          {
-            quizzes.map((quiz, index) => (
-              <div key={index} className="list-group-item list-group-item-action flex-column align-items-start">
-                <div className="d-flex w-100 justify-content-between">
-                  <h5 className="mb-1">{quiz.tname}</h5>
-                  <div>
-                    <button type="button" className="close" aria-label="Close">
-                      <span aria-hidden="true">&times;</span>
-                    </button>
-                  </div>
+          {quizzes.map((quiz, index) => (
+            <div
+              key={index}
+              className="list-group-item list-group-item-action flex-column align-items-start"
+            >
+              <div className="d-flex w-100 justify-content-between">
+                <h5 className="mb-1">{quiz.tname}</h5>
+                <div>
+                  <button type="button" className="close" aria-label="Close" onClick={()=>deleteQuiz(quiz.quizid)}>
+                    <span aria-hidden="true">&times;</span>
+                  </button>
                 </div>
-                <small>Created date: {new Date(quiz.created).toISOString().split('T')[0]}</small>
-                <p className="mb-1">CMPT372 quiz</p>
-                <button type="button" name="edit" className="btn btn-warning btn-sm mt-2" onClick={() => alert("Not impletented yet")}>Edit</button>
-                <button type="button" name="start" className="btn btn-primary btn-sm mt-2 ml-2" onClick={() => startQuiz(quiz.quizid)}>Start</button>
               </div>
-            ))
-          }
+              <small>
+                Created date:{" "}
+                {new Date(quiz.created).toISOString().split("T")[0]}
+              </small>
+              <p className="mb-1">CMPT372 quiz</p>
+              <button
+                type="button"
+                name="edit"
+                className="btn btn-warning btn-sm mt-2"
+                onClick={() => alert("Not impletented yet")}
+              >
+                Edit
+              </button>
+              <button
+                type="button"
+                name="start"
+                className="btn btn-primary btn-sm mt-2 ml-2"
+                onClick={() => startQuiz(quiz.quizid)}
+              >
+                Start
+              </button>
+            </div>
+          ))}
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
 export default QuizList;

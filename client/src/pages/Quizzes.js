@@ -29,7 +29,7 @@ function Quizzes() {
           return response.json();
         })
         .then((data) =>
-          navigate("/Quiz/" + data[0].quizid + "/" + data[0].tname)
+        navigate("/Quiz/" + data[0].quizid + "/" + data[0].tname)
         )
         .then(console.log("quiz made"));
     } catch (err) {

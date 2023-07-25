@@ -1,16 +1,15 @@
 import React, { useState, useContext } from "react";
-import { Link, useNavigate } from "react-router-dom"
-import { auth } from '../firebase-config'
+import { Link, useNavigate } from "react-router-dom";
+import { auth } from "../firebase-config";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { UserContext } from "../App";
+import apiUrl from "../api-config";
 
 function Login() {
   const navigate = useNavigate();
-  const { fetchUserData } = useContext(UserContext)
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-
-
+  const { fetchUserData } = useContext(UserContext);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const handleEmailChange = (event) => {
     setEmail(event.target.value);
@@ -20,31 +19,40 @@ function Login() {
     setPassword(event.target.value);
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    console.log(email + " " + password);
-    const login = async () => {
-      try {
-        const user = await signInWithEmailAndPassword(
-          auth,
-          email,
-          password
-        );
+    login();
+  };
 
-        // fetchUserData(user.uid)
-        // console.log(user)
-        navigate('/')
-      } catch (error) {
-        console.log(error.message)
-        alert("Login error: " + error.message);
-      }
+  const login = async () => {
+    try {
+      const user = await signInWithEmailAndPassword(auth, email, password);
+      await postRequestSubmit(await user.user.getIdToken(), user.user.email);
+      navigate("/");
+    } catch (error) {
+      console.log(error.message);
     }
-    login()
+  };
 
-  }
+  const postRequestSubmit = async (idToken, firebaseEmail) => {
+    console.log(idToken);
+    const body = { token: idToken, email: firebaseEmail };
+    try {
+      const response = await fetch(`${apiUrl}/login`, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
+      console.log("Insert user result: ", response);
+    } catch (err) {
+      console.error(err.message);
+    }
+  };
+
   return (
-
-
     <form className="w-25 m-5 mx-auto" onSubmit={handleSubmit}>
       <div className="form-outline mb-4">
         <input
