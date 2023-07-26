@@ -122,7 +122,7 @@ const Quiz = () => {
                 type: currentQuestion.type, 
                 submitted: selectedOption, 
                 correct: selectedOption === currentQuestion.answer ? true : false, 
-                points: currentQuestion.points 
+                points: selectedOption === currentQuestion.answer ? currentQuestion.points : 0
             };
         } else if (currentQuestion.type === 'multiple') {
             input = { 
@@ -133,7 +133,7 @@ const Quiz = () => {
                 type: currentQuestion.type, 
                 submitted: selectedOption, 
                 correct: selectedOption === currentQuestion.answer ? true : false, 
-                points: currentQuestion.points 
+                points: selectedOption === currentQuestion.answer ? currentQuestion.points : 0
             };
         }  else if (currentQuestion.type === 'short') {
             input = { 
@@ -143,8 +143,8 @@ const Quiz = () => {
               fname: user.fname, 
               type: currentQuestion.type, 
               submitted: shortAnswer, 
-              correct: shortAnswer === currentQuestion.answer, 
-              points: currentQuestion.points 
+              correct: shortAnswer.toLowerCase() === (currentQuestion.answer).toLowerCase(), 
+              points: selectedOption === currentQuestion.answer ? currentQuestion.points : 0 
             }; 
         }
         var data = JSON.stringify(input);
@@ -153,7 +153,7 @@ const Quiz = () => {
         socket.emit("submit", input) 
 
         // try {
-        //     await fetch(`${apiUrl}/quiz/${params.id}/question/${question.id}/submitAnswer`, {
+        //     await fetch(`${apiUrl}/quiz/${params.id}/question/${currentQuestion.id}/submitAnswer`, {
         //         method: "POST",
         //         headers: {
         //           "Content-type": "application/json; charset=UTF-8",
@@ -165,7 +165,6 @@ const Quiz = () => {
         //     console.error(err);
         //     console.log("Error Submitting question answer");
         // }
-        // navigate('/Quiz/65/Question/1');
     };
 
     const handleTimerTimeout = () => {

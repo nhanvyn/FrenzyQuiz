@@ -522,10 +522,10 @@ app.post('/quiz/:qid/question/:questionId/submitAnswer', async (req, res) => {
     var body = req.body;
 
     const insertSubmittedAnswerQuery = `
-      INSERT INTO submitted (questionid, qtype, correct, submitted, quizid, uid) 
-      VALUES ($1, $2, $3, $4, $5, $6);
+      INSERT INTO submitted (questionid, qtype, correct, submitted, quizid, uid, points) 
+      VALUES ($1, $2, $3, $4, $5, $6, $7);
     `;
-    await pool.query(insertSubmittedAnswerQuery, [questionId, body.type, body.correct, body.submitted, quizId, body.uid]);
+    await pool.query(insertSubmittedAnswerQuery, [questionId, body.type, body.correct, body.submitted, quizId, body.uid, body.points]);
   } catch (err) {
     console.error(err.message);
     res.status(500).json({ error: "Server error submitting answer" });
