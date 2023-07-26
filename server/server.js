@@ -61,7 +61,9 @@ io.on("connection", (socket) => {
         quiz: data.quiz,
         status: "waiting",
         questions: [],
-        currentQuestion: 0
+        currentQuestionIndex: 0,
+        submissionCounts: {},
+        leaderboard: {}
       };
     }
 
@@ -169,6 +171,56 @@ io.on("connection", (socket) => {
       console.log("fetch question failed, ", error)
     });
   });
+
+  socket.on("submit",  async (data) => {
+    // check if all answers are submitted
+    
+    console.log("submission received: ", data);
+    var index = rooms[data.quizid].currentQuestionIndex;
+    var correct_answer = rooms[data.quizid].questions[index].answer
+    var correct = data.submitted === correct_answer
+    var points = correct ? rooms[data.quizid].questions[index].points : 0
+    console.log("show question detail", rooms[data.quizid].questions[index])
+
+    // update submission counts
+    rooms[data.quizid].submissionCounts[index] = (rooms[data.quizid].submissionCounts[index] || 0) + 1;
+    // update leaderboard
+    
+  
+    if (!rooms[data.quizid].leaderboard[data.email]){
+      rooms[data.quizid].leaderboard[data.email] = { fname: data.fname, score: points}
+    }
+    else {
+      rooms[data.quizid].leaderboard[data.email].score += points
+    }
+    
+    console.log("check submitCounts", rooms[data.quizid].submissionCounts[index], "check player counts",  rooms[data.quizid].players.length-1)
+    if (rooms[data.quizid].submissionCounts[index] ===  rooms[data.quizid].players.length-1){
+      console.log("all answers are submitted, sending leaderboard and answer")
+      console.log("Show leader board", rooms[data.quizid].leaderboard)
+      console.log("Show score", rooms[data.quizid].leaderboard[data.email].score)
+      // this is dumb stupid, you cannot get the score from email cuz the last person will override this 
+      io.in(data.quizid).emit("show_answer", correct_answer)
+      // io.in(data.quizid).emit("crazy_test", "sup this is creazy test")
+      io.in(data.quizid).emit("show_leaderboard",  rooms[data.quizid].leaderboard)
+      // currentQuestionIndex++
+    }
+  });
+
+  socket.on("next_question",  (data) => {
+    rooms[data.quizid].currentQuestionIndex += 1;
+    var index = rooms[data.quizid].currentQuestionIndex;
+    
+    if (index <  rooms[data.quizid].questions.length){
+      console.log("Sending the ", index, " th question: ", rooms[data.quizid].questions[index])
+      io.in(data.quizid).emit("next_question", rooms[data.quizid].questions[index]);
+    }
+    else {
+      io.in(data.quizid).emit("end_quiz")
+    }
+    
+  });
+
 });
 
 app.post("/register", async (req, res) => {
