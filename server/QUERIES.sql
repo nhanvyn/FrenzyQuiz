@@ -74,6 +74,7 @@ CREATE TABLE IF NOT EXISTS submitted (
 	questionid INT NOT NULL,
 	qtype VARCHAR(16) NOT NULL,
 	correct BOOLEAN NOT NULL,
+	points INT NOT NULL,
 	submitted VARCHAR(255),
 	quizid INT NOT NULL,
 	uid VARCHAR(255) NOT NULL,

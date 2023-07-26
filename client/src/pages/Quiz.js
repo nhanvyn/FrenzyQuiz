@@ -3,11 +3,13 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { SocketContext, UserContext, QuizContext } from '../App';
 import apiUrl from "../api-config";
 import Timer from './Timer';
+import Leaderboard from './Leaderboard';
+
 
 const Quiz = () => {
     const [selectedOption, setSelectedOption] = useState(null);
-    const [question, setQuestion] = useState([]);
-    const [creator,  setCreator] = useState(null);
+    // const [question, setQuestion] = useState([]);
+    const [creator,  setCreator] = useState(false);
     const [timer, setTimer] = useState(null);
     const [submitted, setSubmitted] = useState(false);
     const { user } = useContext(UserContext);
@@ -16,46 +18,92 @@ const Quiz = () => {
     const { id } = useParams();
     const socket = useContext(SocketContext)
     const {currentQuestion, setCurrentQuestion} = useContext(QuizContext)
+    const [showLeaderboard, setShowLeaderboard] = useState(false)
+    const [showAnswer, setShowAnswer] = useState(false)
+    const [leaderboardData, setLeaderboardData] = useState("unknown")
+    const [currentAnswer, setCurrentAnswer] = useState(null);
+    const [shortAnswer, setShortAnswer] = useState('');
 
     const handleOptionClick = (option) => {
+        console.log("Just selected an option: ", option)
         setSelectedOption(option);
     };
 
+    const goToNextQuestion = () => {
+        socket.emit('next_question', {quizid: Number(id)})
+    }
+
     useEffect(() => {
-        // const fetchQuestion = async () => {
-        //     const response = await fetch(`${apiUrl}/quiz/${params.id}/question/${params.num}`);
-        //     const data = await response.json();
-        //     console.log("quizdata = ", data);
-        //     setQuestion(data);
-        //     setCreator(data.uid === user.uid);
-        //     setTimer(data.sec * 1000); // convert s -> ms
-        // };
+        console.log("check creator change: ", creator)
+    }, [creator])
 
-        // if (user && params) {
-        //     fetchQuestion();
-        // }
+    useEffect(() => {
+       
         if (socket) {
-
             console.log("check currentQuestion in Quiz.js: ", currentQuestion)
             if (currentQuestion.qnum === 0){
+                console.log("first timer here, check creator: ", currentQuestion.uid === user.uid)
                 setTimer(currentQuestion.sec * 1000)
                 setCreator(currentQuestion.uid === user.uid)
             }
 
-
+            
             const handleNextQuestion = (data) => {
               console.log("next quesion arrived in QUiz.js:", data)
-              // send player to main quiz 
+              setCurrentQuestion(data)
+              setShowAnswer(false)
+              setShowLeaderboard(false)
+              setTimer(data.sec*1000)
+              setSubmitted(false)
               
             };
+
+            const handleShowAnswer = (data) => {
+                console.log("show correct answer: ", data)
+                if (!creator){
+                    // todo add leaderboardData here
+                    setCurrentAnswer(data)
+                    setShowAnswer(true)
+                }
+            }
+
+            const handleShowLeaderboard = (data) => {
+                console.log("show leaderboard:", data)
+                if (creator){
+                    setLeaderboardData(data)
+                    setShowLeaderboard(true)
+                } else {
+                    setLeaderboardData(data)
+                }
+            }
+
+            const handleShowStat = (data) => {
+                // todo: show statistic
+            }
+
+            const handleCrazyTest = (data) => {
+                console.log("show crazy test", data)
+            }
+
+
+
             socket.on("next_question", handleNextQuestion);
-      
+            socket.on("show_answer", handleShowAnswer);
+            socket.on("show_leaderboard", handleShowLeaderboard);
+            socket.on("show_stat", handleShowStat);
+            socket.on("crazy_test", handleCrazyTest);
+            
+
             return () => {
               socket.off('next_question', handleNextQuestion);
+              socket.off('show_answer', handleShowAnswer);
+              socket.off('show_leaderboard', handleShowLeaderboard);
+              socket.off('show_stat', handleShowStat)
+              socket.off('crazy_test', handleCrazyTest);
               console.log("Called")
             };
           }
-    },[socket, id])
+    },[socket, id, creator, currentQuestion, user.uid, setCurrentQuestion])
 
 
     const handleSubmit = async (event) => {
@@ -66,19 +114,46 @@ const Quiz = () => {
         setSubmitted(true);
         var target = event ? event.target : null;
         var input;
-        if (question.type === 'tf') {
-            input = { uid: user.uid, type: question.type, submitted: selectedOption, correct: selectedOption === question.answer ? true : false };
-        } else if (question.type === 'multiple') {
-            input = { uid: user.uid, type: question.type, submitted: selectedOption, correct: selectedOption === question.answer ? true : false };
-        } else if (question.type === 'short') {
-            input = { uid: user.uid, type: question.type, submitted: target.answer.value, correct: target.answer.value === question.answer ? true : false };
+        if (currentQuestion.type === 'tf') {
+            input = { 
+                quizid: Number(currentQuestion.quizid), 
+                uid: user.uid, email: user.email, 
+                fname: user.fname, 
+                type: currentQuestion.type, 
+                submitted: selectedOption, 
+                correct: selectedOption === currentQuestion.answer ? true : false, 
+                points: selectedOption === currentQuestion.answer ? currentQuestion.points : 0
+            };
+        } else if (currentQuestion.type === 'multiple') {
+            input = { 
+                quizid: Number(currentQuestion.quizid), 
+                uid: user.uid,  
+                email: user.email, 
+                fname: user.fname, 
+                type: currentQuestion.type, 
+                submitted: selectedOption, 
+                correct: selectedOption === currentQuestion.answer ? true : false, 
+                points: selectedOption === currentQuestion.answer ? currentQuestion.points : 0
+            };
+        }  else if (currentQuestion.type === 'short') {
+            input = { 
+              quizid: Number(currentQuestion.quizid), 
+              uid: user.uid,  
+              email: user.email, 
+              fname: user.fname, 
+              type: currentQuestion.type, 
+              submitted: shortAnswer, 
+              correct: shortAnswer.toLowerCase() === (currentQuestion.answer).toLowerCase(), 
+              points: selectedOption === currentQuestion.answer ? currentQuestion.points : 0 
+            }; 
         }
         var data = JSON.stringify(input);
 
-        console.log("Are about to submit: ", data)
+        console.log("Are about to submit: ", data, " Option: ", selectedOption)
+        socket.emit("submit", input) 
 
         // try {
-        //     await fetch(`${apiUrl}/quiz/${params.id}/question/${question.id}/submitAnswer`, {
+        //     await fetch(`${apiUrl}/quiz/${params.id}/question/${currentQuestion.id}/submitAnswer`, {
         //         method: "POST",
         //         headers: {
         //           "Content-type": "application/json; charset=UTF-8",
@@ -90,12 +165,12 @@ const Quiz = () => {
         //     console.error(err);
         //     console.log("Error Submitting question answer");
         // }
-        // navigate('/Quiz/65/Question/1');
     };
 
     const handleTimerTimeout = () => {
         if (!submitted && creator === false) {
             console.log("About to submit")
+            handleSubmit();
 
         }
     };
@@ -108,84 +183,103 @@ const Quiz = () => {
     };
     return (
         <div className='app'>
-            <h1 className="d-flex justify-content-center">Question #{currentQuestion.qnum}</h1>
-            <form onSubmit={handleSubmit}>
-                <div className="row d-flex justify-content-center align-items-center">
-                    <div className="col-6 bg-light">
-                        <div>
-                            <Timer totalTime={timer} onTimeout={handleTimerTimeout} />
-                            <h3 className="row d-flex justify-content-center">{currentQuestion.question}</h3>
-                            {currentQuestion.type === "multiple" && (
-                                <>
-                                    <div className=" mt-auto ">
-                                        {currentQuestion.options.map((option, index) => (
-                                            <p key={index} className={`col d-flex justify-content-center border border-dark 
-                                            ${creator && option === currentQuestion.answer ? 'bg-success' : ''}`}
-                                                onClick={creator || submitted ? null : () => handleOptionClick(option)}
-                                                style={{ backgroundColor: selectedOption === option ? 'yellow' : 'white' }}>
-                                                {option}
-                                            </p>
-                                        ))}
-                                    </div>
-                                </>
-                            )}
-                            {currentQuestion.type === "short" && (
-                                <>
-                                    <div className="row py-1">
-                                        <textarea 
-                                            id='answer'
-                                            name='answer'
-                                            className='col'
-                                            style={box}
-                                            required
-                                            disabled={creator || submitted}
-                                        />
-                                    </div>
-                                </>
-                            )}
-                            {currentQuestion.type === "tf" && (
-                                <>
-                                    <div className=" mt-auto ">
-                                        <div className="row ">
-                                            <p className={`col d-flex justify-content-center border border-dark 
-                                                            ${creator && currentQuestion.answer === "true" ? 'bg-success' : ''}`}
-                                                onClick={creator || submitted ? null : () => handleOptionClick("true")}
-                                                style={{ backgroundColor: selectedOption === "true" ? 'yellow' : 'white' }}>
-                                                True
-                                            </p>
-                                            <p className={`col d-flex justify-content-center border border-dark 
-                                                            ${creator && currentQuestion.answer === "false" ? 'bg-success' : ''}`}
-                                                onClick={creator || submitted ? null : () => handleOptionClick("false")}
-                                                style={{ backgroundColor: selectedOption === "false" ? 'yellow' : 'white' }}>
-                                                False
-                                            </p>
+            {showLeaderboard ? (
+                <>
+                <Leaderboard leaderboardData={leaderboardData} />
+                <div className='d-flex justify-content-center'>
+                    <button className='btn btn-primary btn-lg'  onClick={() => goToNextQuestion()}>Next question</button>
+                </div>
+                </>
+            ) : showAnswer ? (
+                <>
+                <h1 className="d-flex justify-content-center">Correct Answer is {currentAnswer} </h1>
+                <h1 className="d-flex justify-content-center">Your points: {leaderboardData[user.email]?.score}  </h1>
+                </>
+            ) : (
+                <>
+                <h1 className="d-flex justify-content-center">Question #{currentQuestion.qnum}</h1>
+                <form onSubmit={handleSubmit}>
+                    <div className="row d-flex justify-content-center align-items-center">
+                        <div className="col-6 bg-light">
+                            <div>
+                                <Timer totalTime={timer} onTimeout={handleTimerTimeout} />
+                                <h3 className="row d-flex justify-content-center">{currentQuestion.question}</h3>
+                                {currentQuestion.type === "multiple" && (
+                                    <>
+                                        <div className=" mt-auto ">
+                                            {currentQuestion.options.map((option, index) => (
+                                                <p key={index} className={`col d-flex justify-content-center border border-dark 
+                                                ${creator && option === currentQuestion.answer ? 'bg-success' : ''}`}
+                                                    onClick={creator || submitted ? null : () => handleOptionClick(option)}
+                                                    style={{ backgroundColor: selectedOption === option ? 'yellow' : 'white' }}>
+                                                    {option}
+                                                </p>
+                                            ))}
                                         </div>
-                                    </div>
-                                </>
-                            )}
-                            {creator ? (
-                                <>
-                                    <h4>Answer:</h4>
-                                    <p>{currentQuestion.answer}</p>
-                                </>
-                            ) : (
-                                <>
-                                    {!submitted ? (
-                                        <>
-                                            <button type="submit" className="btn btn-primary btn-sm mt-2 ml-2">Submit</button>
-                                        </>
-                                    ) : (
-                                        <div>
-                                            <strong className='text-primary'>Answer Submitted</strong>
+                                    </>
+                                )}
+                                {currentQuestion.type === "short" && (
+                                    <>
+                                        <div className="row py-1">
+                                            <textarea 
+                                                id='answer'
+                                                name='answer'
+                                                className='col'
+                                                style={box}
+                                                required
+                                                disabled={creator || submitted}
+                                                value={shortAnswer}
+                                                onChange={e => setShortAnswer(e.target.value)}
+                                            />
                                         </div>
-                                    )}
-                                </>
-                            )}
+                                    </>
+                                )}
+                                {currentQuestion.type === "tf" && (
+                                    <>
+                                        <div className=" mt-auto ">
+                                            <div className="row ">
+                                                <p className={`col d-flex justify-content-center border border-dark 
+                                                                ${creator && currentQuestion.answer === "true" ? 'bg-success' : ''}`}
+                                                    onClick={creator || submitted ? null : () => handleOptionClick("true")}
+                                                    style={{ backgroundColor: selectedOption === "true" ? 'yellow' : 'white' }}>
+                                                    True
+                                                </p>
+                                                <p className={`col d-flex justify-content-center border border-dark 
+                                                                ${creator && currentQuestion.answer === "false" ? 'bg-success' : ''}`}
+                                                    onClick={creator || submitted ? null : () => handleOptionClick("false")}
+                                                    style={{ backgroundColor: selectedOption === "false" ? 'yellow' : 'white' }}>
+                                                    False
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
+                                {creator ? (
+                                    <>
+                                        <h4>Answer:</h4>
+                                        <p>{currentQuestion.answer}</p>
+                                    </>
+                                ) : (
+                                    <>
+                                        {!submitted ? (
+                                            <>
+                                                <button type="submit" className="btn btn-primary btn-sm mt-2 ml-2">Submit</button>
+                                            </>
+                                        ) : (
+                                            <div>
+                                                <strong className='text-primary'>Answer Submitted</strong>
+                                            </div>
+                                        )}
+                                    </>
+                                )}
+                            </div>
                         </div>
                     </div>
-                </div>
-            </form>
-        </div>
+                </form>
+                </>
+            )}
+           
+       </div>
     );
     
     
