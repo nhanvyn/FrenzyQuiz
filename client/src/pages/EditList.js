@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Link, NavLink } from "react-router-dom";
 import { useParams } from "react-router";
 import apiUrl from "../api-config";
+import { useNavigate } from "react-router-dom";
 
-function QuesitonList() {
+function Edit() {
+  const navigate = useNavigate();
+
   const [questions, setQuestion] = useState([]);
-
   const params = useParams();
 
   const fetchQuestions = async () => {
@@ -18,15 +19,10 @@ function QuesitonList() {
       console.error(err);
     }
   };
-  let total = 0;
 
-  total = questions.length;
-
-  console.log("size is " + total);
   useEffect(() => {
     fetchQuestions();
   }, []);
-
   return (
     <>
       <div className="app">
@@ -51,31 +47,30 @@ function QuesitonList() {
                     </button>
                   </div>
                 </div>
+                <small>
+                  Quiz Type:
+                  {" " + questions.type}
+                </small>
+                <p className="mb-1"></p>
                 <button
                   type="button"
                   name="edit"
                   className="btn btn-warning btn-sm mt-2"
-                  onClick={() => alert("not implemented")}
+                  onClick={() =>
+                    navigate(
+                      `/Edit/${params.id}/${questions.id}/${questions.type}`
+                    )
+                  }
                 >
                   Edit
                 </button>
               </div>
             ))}
           </div>
-          <button>
-            <NavLink
-              activeclassname="active"
-              className="nav-link"
-              to={"/Create/" + params.id + "/" + total}
-            >
-              Add Question
-            </NavLink>
-          </button>
-          <button className="btn btn-primary ">Finish Quiz</button>
         </div>
       </div>
     </>
   );
 }
 
-export default QuesitonList;
+export default Edit;

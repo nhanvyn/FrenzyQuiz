@@ -1,7 +1,7 @@
 const { Pool } = require("pg");
 const dotenv = require("dotenv");
 const express = require("express");
-const axios = require('axios');
+const axios = require("axios");
 const http = require("http");
 const { Server } = require("socket.io");
 const cors = require("cors");
@@ -61,7 +61,7 @@ io.on("connection", (socket) => {
         quiz: data.quiz,
         status: "waiting",
         questions: [],
-        currentQuestion: 0
+        currentQuestion: 0,
       };
     }
 
@@ -145,29 +145,37 @@ io.on("connection", (socket) => {
   // start the game
   async function fetchQuestions(quizId) {
     try {
-      const response = await axios.get(`http://localhost:3500/questions/${quizId}`);
+      const response = await axios.get(
+        `http://localhost:3500/questions/${quizId}`
+      );
       return response.data;
     } catch (error) {
-      console.error('Error fetching questions:', error.message);
+      console.error("Error fetching questions:", error.message);
       throw error;
     }
   }
-  
-  socket.on("start_quiz",  async (data) => {
-    console.log("start quiz receiverd")
+
+  socket.on("start_quiz", async (data) => {
+    console.log("start quiz receiverd");
     // init the room[data.quizid].questions with questions retrieve from db
     fetchQuestions(data.quizId)
-    .then((questions) => {
-      rooms[data.quizId].questions = questions.sortedQuestions;
-      rooms[data.quizId].currentQuestionIndex = 0;
-    // send the first question
-    console.log("send the first question:", rooms[data.quizId].questions[0])
-    console.log("check data.quizid:", data.quizId, typeof data.quizId)
-      io.in(data.quizId).emit("next_question", rooms[data.quizId].questions[0]);
-    })
-    .catch((error) => {
-      console.log("fetch question failed, ", error)
-    });
+      .then((questions) => {
+        rooms[data.quizId].questions = questions.sortedQuestions;
+        rooms[data.quizId].currentQuestionIndex = 0;
+        // send the first question
+        console.log(
+          "send the first question:",
+          rooms[data.quizId].questions[0]
+        );
+        console.log("check data.quizid:", data.quizId, typeof data.quizId);
+        io.in(data.quizId).emit(
+          "next_question",
+          rooms[data.quizId].questions[0]
+        );
+      })
+      .catch((error) => {
+        console.log("fetch question failed, ", error);
+      });
   });
 });
 
@@ -337,27 +345,111 @@ app.post("/createQuestion", async (req, res) => {
     console.log(e);
   }
 });
+app.post("/update", async (req, res) => {
+  try {
+    let update;
 
+    if (req.body.type == "multiple") {
+      const short = `UPDATE multiple SET
+       question = $1, 
+       answer = $2,
+       option1 = $3,
+       option2 = $4,
+       option3 = $5,
+       option4 = $6, 
+       sec = $7, 
+       points = $8 
+       WHERE id = $9 `;
+      update = await pool.query(short, [
+        req.body.question,
+        req.body.answer,
+        req.body.o1,
+        req.body.o2,
+        req.body.o3,
+        req.body.o4,
+        req.body.time,
+        req.body.points,
+        req.body.quesid,
+      ]);
+    } else if (req.body.type == "short") {
+      const short = `UPDATE short SET question = $1, answer =$2, sec = $3, points =$4 WHERE id = $5 `;
+      update = await pool.query(short, [
+        req.body.question,
+        req.body.answer,
+        req.body.time,
+        req.body.points,
+        req.body.quesid,
+      ]);
+    } else if (req.body.type == "tf") {
+      console.log("update tf");
+      const tf = `UPDATE tf SET question = $1, answer =$2, sec = $3, points =$4 WHERE id = $5 `;
+      update = await pool.query(tf, [
+        req.body.question,
+        req.body.answer,
+        req.body.time,
+        req.body.points,
+        req.body.quesid,
+      ]);
+    }
+  } catch (e) {
+    console.log(e);
+  }
+});
 
+app.get("/getQuestion/:qid/:quesid/:type", async (req, res) => {
+  try {
+    console.log(req.params.qid);
+    console.log(req.params.quesid);
+    console.log(req.params.type);
+    let getQ = "";
+    if (req.params.type == "multiple") {
+      getQ = `SELECT *
+      FROM multiple
+      INNER JOIN mclist
+      ON multiple.id = mclist.mid
+      WHERE quizid = $1 AND id = $2 ;`;
+    } else if (req.params.type == "short") {
+      getQ = `SELECT *
+        FROM short
+        INNER JOIN slist
+        ON short.id = slist.sid
+        WHERE quizid = $1 AND id = $2 ;`;
+    } else if (req.params.type == "tf") {
+      getQ = `SELECT *
+        FROM tf
+        INNER JOIN tflist
+        ON tf.id = tflist.tfid
+        WHERE quizid = $1 AND id = $2 ;`;
+    }
+    const qdata = await pool.query(getQ, [req.params.qid, req.params.quesid]);
+    console.log(qdata.rows);
+    res.json(qdata.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      error: "Server Error getting the question ",
+    });
+  }
+});
 app.get("/getQuestions/:id", async (req, res) => {
   try {
     const id = req.params.id;
     const getMc = `
-    SELECT question, quizid , qnum 
+    SELECT question, quizid , qnum, id, type
     FROM multiple
     INNER JOIN mclist
     ON multiple.id = mclist.mid
     WHERE quizid = $1;
     `;
     const getShort = `
-    SELECT question, quizid , qnum 
+    SELECT question, quizid , qnum, id, type
     FROM short
     INNER JOIN slist
     ON short.id = slist.sid
     WHERE quizid = $1;
     `;
     const getTF = `
-    SELECT question, quizid , qnum 
+    SELECT question, quizid , qnum, id, type
     FROM tf
     INNER JOIN tflist
     ON tf.id = tflist.tfid
@@ -367,9 +459,10 @@ app.get("/getQuestions/:id", async (req, res) => {
     const mc = await pool.query(getMc, [id]);
     const short = await pool.query(getShort, [id]);
     const tf = await pool.query(getTF, [id]);
-    const total = [mc.rows, short.rows, tf.rows];
+    let total = [...mc.rows, ...short.rows, ...tf.rows];
+    total.sort((a, b) => a.qnum - b.qnum);
     console.log(total);
-    console.log(mc.rows[0]);
+
     res.json(total);
   } catch (err) {
     console.error(err);
@@ -397,7 +490,6 @@ app.get("/getCreatedQuiz/:uid", async (req, res) => {
     });
   }
 });
-
 
 // find the quiz that match quiz id
 app.get("/quizzes/:quizId", async (req, res) => {
@@ -442,15 +534,24 @@ app.get("/quiz/:quidId/question/:questionNum", async (req, res) => {
       WHERE tflist.quizid = $1 AND qnum = $2;
     `;
 
-    const mcResult = await pool.query(getMc, [params.quidId, params.questionNum]);
+    const mcResult = await pool.query(getMc, [
+      params.quidId,
+      params.questionNum,
+    ]);
     if (mcResult.rows.length > 0) {
       res.json(mcResult.rows[0]);
     } else {
-      const shortResult = await pool.query(getShort, [params.quidId, params.questionNum]);
+      const shortResult = await pool.query(getShort, [
+        params.quidId,
+        params.questionNum,
+      ]);
       if (shortResult.rows.length > 0) {
         res.json(shortResult.rows[0]);
       } else {
-        const tfResult = await pool.query(getTF, [params.quidId, params.questionNum]);
+        const tfResult = await pool.query(getTF, [
+          params.quidId,
+          params.questionNum,
+        ]);
         if (tfResult.rows.length > 0) {
           res.json(tfResult.rows[0]);
         }
@@ -463,7 +564,7 @@ app.get("/quiz/:quidId/question/:questionNum", async (req, res) => {
   }
 });
 
-app.post('/quiz/:qid/question/:questionId/submitAnswer', async (req, res) => {
+app.post("/quiz/:qid/question/:questionId/submitAnswer", async (req, res) => {
   try {
     var quizId = req.params.qid;
     var questionId = req.params.questionId;
@@ -473,7 +574,14 @@ app.post('/quiz/:qid/question/:questionId/submitAnswer', async (req, res) => {
       INSERT INTO submitted (questionid, qtype, correct, submitted, quizid, uid) 
       VALUES ($1, $2, $3, $4, $5, $6);
     `;
-    await pool.query(insertSubmittedAnswerQuery, [questionId, body.type, body.correct, body.submitted, quizId, body.uid]);
+    await pool.query(insertSubmittedAnswerQuery, [
+      questionId,
+      body.type,
+      body.correct,
+      body.submitted,
+      quizId,
+      body.uid,
+    ]);
   } catch (err) {
     console.error(err.message);
     res.status(500).json({ error: "Server error submitting answer" });
@@ -495,15 +603,11 @@ app.delete("/quizzes/:quizId", async (req, res) => {
   }
 });
 
-
-
-
-
 // app.get("/questions/:quizid", async (req, res) => {
 //   res.send("what eawad up");
 // });
 
-app.get('/questions/:quizid', async (req, res) => {
+app.get("/questions/:quizid", async (req, res) => {
   try {
     const quizFetchQuery = `
     WITH multiple_choice AS (
@@ -582,25 +686,27 @@ app.get('/questions/:quizid', async (req, res) => {
   LEFT JOIN multiple_choice m ON m.quizid = q.quizid
   LEFT JOIN short_answers s ON s.quizid = q.quizid
   LEFT JOIN true_false t ON t.quizid = q.quizid
-  WHERE q.quizid = $1;`
-    
+  WHERE q.quizid = $1;`;
+
     const quizResult = await pool.query(quizFetchQuery, [req.params.quizid]);
-    console.log("quiz result is ", quizResult.rows[0])
+    console.log("quiz result is ", quizResult.rows[0]);
     const quizData = quizResult.rows[0];
     // Merge all question types into one array
-    const allQuestions = [...quizData.multiple, ...quizData.short, ...quizData.tf];
+    const allQuestions = [
+      ...quizData.multiple,
+      ...quizData.short,
+      ...quizData.tf,
+    ];
     // Sort the array by the 'qnum' field
     allQuestions.sort((a, b) => a.qnum - b.qnum);
     quizData.sortedQuestions = allQuestions;
     // res.status(200).json(quizResult.rows[0]);
     res.status(200).json(quizData);
-  }
-  catch (error) {
+  } catch (error) {
     console.log(error);
-    res.status(500).json({ message: 'Server error', error: error.toString() });
+    res.status(500).json({ message: "Server error", error: error.toString() });
   }
 });
-
 
 server.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);

@@ -102,9 +102,6 @@ function CreateQuestion() {
     }
     console.log(state);
   };
-  const handle = (event) => {
-    setTemp("hello world");
-  };
 
   return (
     <>
@@ -237,7 +234,7 @@ function CreateQuestion() {
                     onChange={handleAnswer}
                     id="answer"
                     name="answer"
-                    defaultValue="1"
+                    defaultValue={option1}
                     className="col"
                     required
                   >

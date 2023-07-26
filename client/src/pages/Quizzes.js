@@ -30,7 +30,7 @@ function Quizzes() {
         })
         .then((data) =>{
           console.log("print quiz just created: ", data)
-          navigate("/Quiz/" + data[0].quizid + "/" + data[0].tname)
+          navigate("/QuesitonList/" + data[0].quizid + "/" + data[0].tname)
         })
         .then(console.log("quiz made"));
     } catch (err) {

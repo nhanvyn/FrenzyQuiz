@@ -12,6 +12,9 @@ import QuesitonList from "./pages/QuestionList";
 import CreateQuestion from "./pages/CreateQuestion";
 import Quiz from "./pages/Quiz";
 import Leaderboard from "./pages/Leaderboard";
+import EditList from "./pages/EditList";
+import Edit from "./pages/Edit";
+
 
 import io from "socket.io-client";
 import { onAuthStateChanged } from "firebase/auth";
@@ -77,12 +80,15 @@ function App() {
                   <Route path="/Register" element={<Register />} />
                   <Route path="/StudentQuizList" element={<StudentQuizList />} />
                   <Route path="/StudentQuizDetail/:id" element={<StudentQuizDetail />} />
-                  <Route path="/Quiz/:id/:name" element={<QuesitonList />} />
+                  <Route path="/QuesitonList/:id/:name" element={<QuesitonList />} />
                   <Route path="/Create/:id/:qnum" element={<CreateQuestion />} />
                   <Route path="/Quizzes" element={<Quizzes />} />
                   <Route path="/Quiz/:id/Question/:num" element={<Quiz />} />
                   <Route path="/Quiz/:id/" element={<Quiz />} />
                   <Route path="/Leaderboard" element={<Leaderboard />} />
+                  <Route path="/EditList/:id/:name" element={<EditList />} />
+                  <Route path="/Edit/:qid/:quesid/:type" element={<Edit />} />
+
                 </Routes>
               </div>
             </BrowserRouter>
