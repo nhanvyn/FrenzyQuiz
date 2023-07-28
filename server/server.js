@@ -564,6 +564,24 @@ app.get("/getCreatedQuiz/:uid", async (req, res) => {
   }
 });
 
+//get taken quiz
+app.get("/getTakenQuiz/:uid", async (req, res) => {
+  try {
+    const uid = req.params.uid;
+    const getTakenQuiz = `
+    SELECT s.quizid, q.tname, q.created, CONCAT(SUM(s.score), '/', SUM(s.points)) AS "score"
+      FROM submitted s
+      INNER JOIN quizzes q ON q.quizid = s.quizid AND s.uid = $1
+    GROUP BY q.tname, q.created, s.quizid;`;
+    //const getTakenQuiz = `SELECT * from submitted;`
+    const result = await pool.query(getTakenQuiz, [uid]);
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err.message);
+  }
+});
+
+
 // find the quiz that match quiz id
 app.get("/quizzes/:quizId", async (req, res) => {
   try {
