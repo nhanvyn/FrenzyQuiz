@@ -8,6 +8,7 @@ const QuizList = () => {
   const socket = useContext(SocketContext);
   const { user } = useContext(UserContext);
   const [quizzes, setQuizzes] = useState([]);
+  const [takenQuizzes, setTakenQuizzes] = useState([]);
 
   useEffect(() => {
     // need to retrieve all quizzes here
@@ -22,7 +23,20 @@ const QuizList = () => {
       }
     };
 
+    //taken quizzes
+    const fetchTakenQuizzes = async () => {
+      try {
+        const res = await fetch(`${apiUrl}/getTakenQuiz/${user.uid}`);
+        const data = await res.json();
+        console.log("Taken Quizzes:", data);
+        setTakenQuizzes(data);
+      } catch (err) {
+        console.error(err.message);
+      }
+    };
+
     if (socket && user) {
+      fetchTakenQuizzes();
       fetchQuizzes();
     }
   }, [socket, user]);
@@ -38,7 +52,7 @@ const QuizList = () => {
   const deleteQuiz = async (quizId) => {
     try {
       const response = await fetch(`${apiUrl}/quizzes/${quizId}`, {
-        method: "DELETE"
+        method: "DELETE",
       });
       setQuizzes(quizzes.filter((q) => q.quizid !== quizId));
     } catch (err) {
@@ -59,7 +73,12 @@ const QuizList = () => {
               <div className="d-flex w-100 justify-content-between">
                 <h5 className="mb-1">{quiz.tname}</h5>
                 <div>
-                  <button type="button" className="close" aria-label="Close" onClick={()=>deleteQuiz(quiz.quizid)}>
+                  <button
+                    type="button"
+                    className="close"
+                    aria-label="Close"
+                    onClick={() => deleteQuiz(quiz.quizid)}
+                  >
                     <span aria-hidden="true">&times;</span>
                   </button>
                 </div>
@@ -73,7 +92,55 @@ const QuizList = () => {
                 type="button"
                 name="edit"
                 className="btn btn-warning btn-sm mt-2"
-                onClick={() => alert("Not impletented yet")}
+                onClick={() =>
+                  navigate(`/EditList/${quiz.quizid}/${quiz.tname}`)
+                }
+              >
+                Edit
+              </button>
+              <button
+                type="button"
+                name="start"
+                className="btn btn-primary btn-sm mt-2 ml-2"
+                onClick={() => startQuiz(quiz.quizid)}
+              >
+                Start
+              </button>
+            </div>
+          ))}
+        </div>
+        <h3 className="textcenter">Taken Quizzes:</h3>
+        <div className="list-group">
+          {takenQuizzes.map((quiz, index) => (
+            <div
+              key={index}
+              className="list-group-item list-group-item-action flex-column align-items-start"
+            >
+              <div className="d-flex w-100 justify-content-between">
+                <h5 className="mb-1">{quiz.tname}</h5>
+                <div>
+                  <button
+                    type="button"
+                    className="close"
+                    aria-label="Close"
+                    onClick={() => deleteQuiz(quiz.quizid)}
+                  >
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+              </div>
+              <small>
+                Created date:{" "}
+                {new Date(quiz.created).toISOString().split("T")[0]}
+              </small>
+              <p className="mb-1">CMPT372 quiz</p>
+              <button
+                type="button"
+                name="edit"
+                className="btn btn-warning btn-sm mt-2"
+                onClick={() =>
+                  navigate(`/EditList/${quiz.quizid}/${quiz.tname}`)
+                }
               >
                 Edit
               </button>

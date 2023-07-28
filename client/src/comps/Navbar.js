@@ -6,22 +6,6 @@ import { auth } from "../firebase-config";
 import apiUrl from "../api-config";
 const Navbar = () => {
   const { user, setUser } = useContext(UserContext);
-  const [userInfo, setUserInfo] = useState({});
-  const [isStudent, setIsStudent] = useState(false);
-
-  const fetchUserInfo = async (uid) => {
-    try {
-      const response = await fetch(`${apiUrl}/users/${user.uid}`);
-      const responseJson = await response.json();
-      setUserInfo(responseJson);
-      setIsStudent(responseJson.role === "student" ? true : false);
-    } catch (err) {
-      console.error(err.message);
-    }
-  };
-  useEffect(() => {
-    fetchUserInfo();
-  });
 
   const handleLogout = async () => {
     await signOut(auth);
@@ -53,7 +37,7 @@ const Navbar = () => {
             {user && (
               <li className="nav-item">
                 <NavLink activeclassname="active" className="nav-link">
-                  Welcome, {user?.email} 
+                  Welcome, {user?.email}
                 </NavLink>
               </li>
             )}
@@ -74,23 +58,13 @@ const Navbar = () => {
             </li>
 
             <li className="nav-item">
-              {isStudent ? (
-                <NavLink
-                  activeclassname="active"
-                  className="nav-link"
-                  to="/StudentQuizList"
-                >
-                  QuizList
-                </NavLink>
-              ) : (
-                <NavLink
-                  activeclassname="active"
-                  className="nav-link"
-                  to="/QuizList"
-                >
-                  QuizList
-                </NavLink>
-              )}
+              <NavLink
+                activeclassname="active"
+                className="nav-link"
+                to="/QuizList"
+              >
+                QuizList
+              </NavLink>
             </li>
             {!user && (
               <li className="nav-item">
