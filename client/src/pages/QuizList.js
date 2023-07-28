@@ -73,7 +73,7 @@ const QuizList = () => {
                 type="button"
                 name="edit"
                 className="btn btn-warning btn-sm mt-2"
-                onClick={() => alert("Not impletented yet")}
+                onClick={() =>  navigate(`/EditList/${quiz.quizid}/${quiz.tname}`)}
               >
                 Edit
               </button>
