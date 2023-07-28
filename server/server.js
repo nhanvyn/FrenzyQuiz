@@ -645,7 +645,7 @@ app.post("/quiz/:qid/question/:questionId/submitAnswer", async (req, res) => {
 
     const insertSubmittedAnswerQuery = `
       INSERT INTO submitted (questionid, qtype, correct, submitted, quizid, uid, score, points) 
-      VALUES ($1, $2, $3, $4, $5, $6, $7);
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8);
     `;
     await pool.query(insertSubmittedAnswerQuery, [questionId, body.type, body.correct, body.submitted, quizId, body.uid, body.score, body.points]);
   } catch (err) {
