@@ -122,7 +122,8 @@ const Quiz = () => {
                 type: currentQuestion.type, 
                 submitted: selectedOption, 
                 correct: selectedOption === currentQuestion.answer ? true : false, 
-                points: selectedOption === currentQuestion.answer ? currentQuestion.points : 0
+                score: selectedOption === currentQuestion.answer ? currentQuestion.points : 0,
+                points: currentQuestion.points
             };
         } else if (currentQuestion.type === 'multiple') {
             input = { 
@@ -133,7 +134,8 @@ const Quiz = () => {
                 type: currentQuestion.type, 
                 submitted: selectedOption, 
                 correct: selectedOption === currentQuestion.answer ? true : false, 
-                points: selectedOption === currentQuestion.answer ? currentQuestion.points : 0
+                score: selectedOption === currentQuestion.answer ? currentQuestion.points : 0,
+                points: currentQuestion.points
             };
         }  else if (currentQuestion.type === 'short') {
             input = { 
@@ -144,7 +146,8 @@ const Quiz = () => {
               type: currentQuestion.type, 
               submitted: shortAnswer, 
               correct: shortAnswer.toLowerCase() === (currentQuestion.answer).toLowerCase(), 
-              points: selectedOption === currentQuestion.answer ? currentQuestion.points : 0 
+              score: shortAnswer.toLowerCase() === (currentQuestion.answer).toLowerCase() ? currentQuestion.points : 0,
+              points: currentQuestion.points
             }; 
         }
         var data = JSON.stringify(input);
@@ -152,19 +155,19 @@ const Quiz = () => {
         console.log("Are about to submit: ", data, " Option: ", selectedOption)
         socket.emit("submit", input) 
 
-        // try {
-        //     await fetch(`${apiUrl}/quiz/${params.id}/question/${currentQuestion.id}/submitAnswer`, {
-        //         method: "POST",
-        //         headers: {
-        //           "Content-type": "application/json; charset=UTF-8",
-        //         },
-        //         body: data,
-        //     });
-        //     console.log("Submitted Data: ", data);
-        // } catch (err) {
-        //     console.error(err);
-        //     console.log("Error Submitting question answer");
-        // }
+        try {
+            await fetch(`${apiUrl}/quiz/${params.id}/question/${currentQuestion.id}/submitAnswer`, {
+                method: "POST",
+                headers: {
+                  "Content-type": "application/json; charset=UTF-8",
+                },
+                body: data,
+            });
+            console.log("Submitted Data: ", data);
+        } catch (err) {
+            console.error(err);
+            console.log("Error Submitting question answer");
+        }
     };
 
     const handleTimerTimeout = () => {
