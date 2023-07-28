@@ -67,7 +67,7 @@ const HomePage = () => {
           </div>
         </>
       ) : (
-        <h3>Current room will display here if you join a quiz</h3>
+        <h3>Current waiting room will display here if you are in a waiting room for a quiz</h3>
       )}
 
 

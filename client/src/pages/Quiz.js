@@ -22,6 +22,10 @@ const Quiz = () => {
     const [showAnswer, setShowAnswer] = useState(false)
     const [leaderboardData, setLeaderboardData] = useState("unknown")
     const [currentAnswer, setCurrentAnswer] = useState(null);
+    const [showStat, setShowStat] = useState(false)
+    const [rank, setRank] = useState(0)
+    const [mean, setMean] = useState(0)
+
     const [shortAnswer, setShortAnswer] = useState('');
 
     const handleOptionClick = (option) => {
@@ -31,6 +35,21 @@ const Quiz = () => {
 
     const goToNextQuestion = () => {
         socket.emit('next_question', {quizid: Number(id)})
+    }
+
+    
+
+    const exitQuiz = () => {
+        if (creator){
+            socket.emit('delete_room', { email: user.email, quizId: Number(id) })
+            navigate(`/`)
+            
+        }
+        else {
+            socket.emit('leave_room', { email: user.email, quizId: Number(id) })
+            navigate(`/`)
+
+        }
     }
 
     useEffect(() => {
@@ -64,6 +83,7 @@ const Quiz = () => {
                     // todo add leaderboardData here
                     setCurrentAnswer(data)
                     setShowAnswer(true)
+
                 }
             }
 
@@ -78,7 +98,29 @@ const Quiz = () => {
             }
 
             const handleShowStat = (data) => {
-                // todo: show statistic
+                // calculate mean
+                setShowAnswer(false)
+                setShowLeaderboard(false)
+                const totalScore = Object.values(leaderboardData).reduce((total, user) => total + user.score, 0);
+                const meanScore = totalScore / Object.keys(leaderboardData).length;
+                console.log('Mean Score:', meanScore);
+                setMean(meanScore)
+                // calculate  user's rank
+                // const sortedLeaderboardData = Object.entries(leaderboardData).sort((a, b) => b[1].score - a[1].score);
+                // const userPosition = sortedLeaderboardData.findIndex(entry => {
+                //     console.log("Current entry's email:", entry[0]);
+                //     return entry[0] === user.email;
+                // });
+                // console.log(sortedLeaderboardData)
+                // setRank(userPosition + 1)
+                // console.log("User position is", userPosition)
+                // setShowStat(true)
+                const sortedLeaderboardData = Object.entries(leaderboardData).sort((a, b) => b[1].score - a[1].score);
+                const userScore = leaderboardData[user.email]?.score;
+                let userRank = sortedLeaderboardData.findIndex(entry => entry[1].score === userScore) + 1;
+                console.log("User rank is", userRank);
+                setRank(userRank);
+                setShowStat(true);
             }
 
             const handleCrazyTest = (data) => {
@@ -103,7 +145,7 @@ const Quiz = () => {
               console.log("Called")
             };
           }
-    },[socket, id, creator, currentQuestion, user.uid, setCurrentQuestion])
+    },[socket, id, creator, currentQuestion, user.uid, setCurrentQuestion, leaderboardData, user.email])
 
 
     const handleSubmit = async (event) => {
@@ -186,7 +228,17 @@ const Quiz = () => {
     };
     return (
         <div className='app'>
-            {showLeaderboard ? (
+            {showStat ? (
+                <>
+                <Leaderboard leaderboardData={leaderboardData} />
+                <div className='container'>
+                    {!creator? (<><h1>Your points:  {leaderboardData[user.email]?.score}</h1></>):(<></>)}
+                    {!creator? (<><h1>Your place:  {rank} out of {Object.keys(leaderboardData).length}</h1></>):(<></>)}
+                    <h1>Class average: {mean}</h1>
+                    <button className='btn btn-primary btn-lg'  onClick={() => exitQuiz()}>Exit</button>
+                </div>
+                </>
+            ) : showLeaderboard ? (
                 <>
                 <Leaderboard leaderboardData={leaderboardData} />
                 <div className='d-flex justify-content-center'>

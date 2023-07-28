@@ -92,17 +92,22 @@ io.on("connection", (socket) => {
 
   socket.on("leave_room", (data) => {
     // remove player from the room
-    if (rooms[data.quizId].players) {
-      rooms[data.quizId].players = rooms[data.quizId].players.filter(
-        (player) => player.email !== data.email
-      );
+    if (rooms[data.quizId]) {
+      if (rooms[data.quizId].players) {
+        rooms[data.quizId].players = rooms[data.quizId].players.filter(
+          (player) => player.email !== data.email
+        );
+      }
+
+      // disconnect player from this room
+      socket.leave(data.quizId);
+      console.log("player", data.email, " leave room", data.quizId)
+      // update new player list
+      io.in(data.quizId).emit("display_new_player", rooms[data.quizId].players);
     }
-
-    // disconnect player from this room
-    socket.leave(data.quizId);
-
-    // update new player list
-    io.in(data.quizId).emit("display_new_player", rooms[data.quizId].players);
+    else {
+      console.log(`Room with id ${data.quizId} is already deleted`);
+    }
   });
 
   // homepage use this to find previously joined room
@@ -132,6 +137,8 @@ io.on("connection", (socket) => {
         }
       });
     }
+    console.log("room", data.quizId, "is being deleted")
+
     delete rooms[data.quizId];
   });
 
@@ -203,51 +210,27 @@ io.on("connection", (socket) => {
     } else {
       rooms[data.quizid].leaderboard[data.email].score += points;
     }
-
-    console.log(
-      "check submitCounts",
-      rooms[data.quizid].submissionCounts[index],
-      "check player counts",
-      rooms[data.quizid].players.length - 1
-    );
-    if (
-      rooms[data.quizid].submissionCounts[index] ===
-      rooms[data.quizid].players.length - 1
-    ) {
-      console.log("all answers are submitted, sending leaderboard and answer");
-      console.log("Show leader board", rooms[data.quizid].leaderboard);
-      console.log(
-        "Show score",
-        rooms[data.quizid].leaderboard[data.email].score
-      );
-      // this is dumb stupid, you cannot get the score from email cuz the last person will override this
-      io.in(data.quizid).emit("show_answer", correct_answer);
-      // io.in(data.quizid).emit("crazy_test", "sup this is creazy test")
-      io.in(data.quizid).emit(
-        "show_leaderboard",
-        rooms[data.quizid].leaderboard
-      );
-      // currentQuestionIndex++
+    
+    console.log("check submitCounts", rooms[data.quizid].submissionCounts[index], "check player counts",  rooms[data.quizid].players.length-1)
+    if (rooms[data.quizid].submissionCounts[index] ===  rooms[data.quizid].players.length-1){
+      console.log("all answers are submitted, sending leaderboard and answer")
+      console.log("Show leader board", rooms[data.quizid].leaderboard)
+      console.log("Show score", rooms[data.quizid].leaderboard[data.email].score)
+      io.in(data.quizid).emit("show_answer", correct_answer)
+      io.in(data.quizid).emit("show_leaderboard",  rooms[data.quizid].leaderboard)
     }
   });
 
   socket.on("next_question", (data) => {
     rooms[data.quizid].currentQuestionIndex += 1;
     var index = rooms[data.quizid].currentQuestionIndex;
-
-    if (index < rooms[data.quizid].questions.length) {
-      console.log(
-        "Sending the ",
-        index,
-        " th question: ",
-        rooms[data.quizid].questions[index]
-      );
-      io.in(data.quizid).emit(
-        "next_question",
-        rooms[data.quizid].questions[index]
-      );
-    } else {
-      io.in(data.quizid).emit("end_quiz");
+    
+    if (index <  rooms[data.quizid].questions.length){
+      console.log("Sending the ", index, " th question: ", rooms[data.quizid].questions[index])
+      io.in(data.quizid).emit("next_question", rooms[data.quizid].questions[index]);
+    }
+    else {
+      io.in(data.quizid).emit("show_stat")
     }
   });
 });

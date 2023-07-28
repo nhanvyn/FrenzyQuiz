@@ -95,9 +95,14 @@ const Room = () => {
         <div className="col-lg-6 col-md-12">
           <h3> {"Quiz id:" + quiz?.quizid + " - " + " question: " + quiz?.tname}</h3>
           <QRCode value={`http://localhost:3000/Room/${id}`} size={256*2} />
-          <button onClick={() => startQuiz(id)} className="btn btn-success btn-block mb-4">
+          {quiz?.uid === user.uid ? (
+            <button onClick={() => startQuiz(id)} className="btn btn-success btn-block mb-4">
             Start the quiz
           </button>
+          ) : (<>
+          
+          </>)}
+          
         </div>
 
         <div className="col-lg-6 col-md-12">
