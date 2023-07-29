@@ -109,7 +109,10 @@ const QuizList = () => {
             </div>
           ))}
         </div>
-        <h3 className="textcenter">Taken Quizzes:</h3>
+        <br></br>
+        <br></br>
+        <br></br>
+        <h3>Taken Quizzes:</h3>
         <div className="list-group">
           {takenQuizzes.map((quiz, index) => (
             <div
@@ -133,25 +136,10 @@ const QuizList = () => {
                 Created date:{" "}
                 {new Date(quiz.created).toISOString().split("T")[0]}
               </small>
-              <p className="mb-1">CMPT372 quiz</p>
-              <button
-                type="button"
-                name="edit"
-                className="btn btn-warning btn-sm mt-2"
-                onClick={() =>
-                  navigate(`/EditList/${quiz.quizid}/${quiz.tname}`)
-                }
-              >
-                Edit
-              </button>
-              <button
-                type="button"
-                name="start"
-                className="btn btn-primary btn-sm mt-2 ml-2"
-                onClick={() => startQuiz(quiz.quizid)}
-              >
-                Start
-              </button>
+              <p className="mb-1">Total Score: {quiz.score}</p>
+              <button className="btn btn-info" onClick={() => {
+                navigate(`/QuizInfo/${user.uid}/${quiz.quizid}`)
+              }}>Info</button>
             </div>
           ))}
         </div>

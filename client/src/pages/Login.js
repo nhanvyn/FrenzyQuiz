@@ -82,28 +82,6 @@ function Login() {
         </label>
       </div>
 
-      <div className="row mb-4">
-        {/* <div className="col d-flex justify-content-center">
-          <div className="form-check">
-            <input
-              className="form-check-input"
-              type="checkbox"
-
-              id="form2Example31"
-              checked
-            />
-            <label className="form-check-label" htmlFor="form2Example31">
-              {" "}
-              Remember me{" "}
-            </label>
-          </div>
-        </div> */}
-
-        {/* <div className="col">
-          <a href="#!">Forgot password?</a>
-        </div> */}
-      </div>
-
       <button type="submit" className="btn btn-primary btn-block mb-4">
         Sign in
       </button>

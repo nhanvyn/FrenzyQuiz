@@ -101,11 +101,10 @@ io.on("connection", (socket) => {
 
       // disconnect player from this room
       socket.leave(data.quizId);
-      console.log("player", data.email, " leave room", data.quizId)
+      console.log("player", data.email, " leave room", data.quizId);
       // update new player list
       io.in(data.quizId).emit("display_new_player", rooms[data.quizId].players);
-    }
-    else {
+    } else {
       console.log(`Room with id ${data.quizId} is already deleted`);
     }
   });
@@ -137,7 +136,7 @@ io.on("connection", (socket) => {
         }
       });
     }
-    console.log("room", data.quizId, "is being deleted")
+    console.log("room", data.quizId, "is being deleted");
 
     delete rooms[data.quizId];
   });
@@ -210,27 +209,48 @@ io.on("connection", (socket) => {
     } else {
       rooms[data.quizid].leaderboard[data.email].score += points;
     }
-    
-    console.log("check submitCounts", rooms[data.quizid].submissionCounts[index], "check player counts",  rooms[data.quizid].players.length-1)
-    if (rooms[data.quizid].submissionCounts[index] ===  rooms[data.quizid].players.length-1){
-      console.log("all answers are submitted, sending leaderboard and answer")
-      console.log("Show leader board", rooms[data.quizid].leaderboard)
-      console.log("Show score", rooms[data.quizid].leaderboard[data.email].score)
-      io.in(data.quizid).emit("show_answer", correct_answer)
-      io.in(data.quizid).emit("show_leaderboard",  rooms[data.quizid].leaderboard)
+
+    console.log(
+      "check submitCounts",
+      rooms[data.quizid].submissionCounts[index],
+      "check player counts",
+      rooms[data.quizid].players.length - 1
+    );
+    if (
+      rooms[data.quizid].submissionCounts[index] ===
+      rooms[data.quizid].players.length - 1
+    ) {
+      console.log("all answers are submitted, sending leaderboard and answer");
+      console.log("Show leader board", rooms[data.quizid].leaderboard);
+      console.log(
+        "Show score",
+        rooms[data.quizid].leaderboard[data.email].score
+      );
+      io.in(data.quizid).emit("show_answer", correct_answer);
+      io.in(data.quizid).emit(
+        "show_leaderboard",
+        rooms[data.quizid].leaderboard
+      );
     }
   });
 
   socket.on("next_question", (data) => {
     rooms[data.quizid].currentQuestionIndex += 1;
     var index = rooms[data.quizid].currentQuestionIndex;
-    
-    if (index <  rooms[data.quizid].questions.length){
-      console.log("Sending the ", index, " th question: ", rooms[data.quizid].questions[index])
-      io.in(data.quizid).emit("next_question", rooms[data.quizid].questions[index]);
-    }
-    else {
-      io.in(data.quizid).emit("show_stat")
+
+    if (index < rooms[data.quizid].questions.length) {
+      console.log(
+        "Sending the ",
+        index,
+        " th question: ",
+        rooms[data.quizid].questions[index]
+      );
+      io.in(data.quizid).emit(
+        "next_question",
+        rooms[data.quizid].questions[index]
+      );
+    } else {
+      io.in(data.quizid).emit("show_stat");
     }
   });
 });
@@ -564,6 +584,58 @@ app.get("/getTakenQuiz/:uid", async (req, res) => {
   }
 });
 
+//get quiz info
+app.get("/getQuizInfo/:uid/:qid", async (req, res) => {
+  try {
+    const uid = req.params.uid;
+    const qid = req.params.qid;
+    const query = `
+    SELECT s.*,
+    CASE
+       WHEN multi.question IS NOT NULL THEN multi.question
+       WHEN short.question IS NOT NULL THEN short.question
+       WHEN tf.question IS NOT NULL THEN tf.question
+       ELSE NULL
+       END AS question,
+    CASE
+       WHEN multi.answer IS NOT NULL THEN multi.answer
+       WHEN short.answer IS NOT NULL THEN short.answer
+       WHEN tf.answer IS NOT NULL THEN tf.answer
+       ELSE NULL
+       END AS answer,
+    CASE
+       WHEN multi.qnum IS NOT NULL THEN multi.qnum
+       WHEN short.qnum IS NOT NULL THEN short.qnum
+       WHEN tf.qnum IS NOT NULL THEN tf.qnum
+       ELSE NULL
+       END AS qnum
+    FROM submitted s
+    INNER JOIN (
+        SELECT DISTINCT quizid, MAX(id) AS max_id, questionid
+        FROM submitted
+        WHERE uid = $1
+        GROUP BY quizid, questionid
+    ) latest ON s.quizid = latest.quizid AND s.id = latest.max_id
+    LEFT JOIN (SELECT m.id AS "multiple_id", ml.qnum, m.question, m.answer
+                  FROM multiple m
+                INNER JOIN mclist ml ON ml.quizid = $2 AND ml.mid = m.id) multi ON multi.multiple_id = s.questionid
+    LEFT JOIN (SELECT sh.id AS "short_id", sl.qnum, sh.question, sh.answer
+                  FROM short sh
+                INNER JOIN slist sl ON sl.quizid = $2 AND sl.sid = sh.id) short ON short.short_id = s.questionid
+    LEFT JOIN (SELECT tf.id AS "tf_id", tl.qnum, tf.question, tf.answer
+              FROM tf
+              INNER JOIN tflist tl ON tl.quizid = $2 AND tl.tfid = tf.id) tf ON tf.tf_id = s.questionid
+    WHERE s.quizid = $2
+    ORDER BY qnum;`;
+    const result = await pool.query(query, [uid, qid]);
+    //get options if question type is multiple 
+    const mcQuery = `SELECT * FROM multiple where id=$1`;
+    const mcResult = await pool.query(mcQuery, [])
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err.message);
+  }
+});
 
 // find the quiz that match quiz id
 app.get("/quizzes/:quizId", async (req, res) => {
@@ -648,7 +720,16 @@ app.post("/quiz/:qid/question/:questionId/submitAnswer", async (req, res) => {
       INSERT INTO submitted (questionid, qtype, correct, submitted, quizid, uid, score, points) 
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8);
     `;
-    await pool.query(insertSubmittedAnswerQuery, [questionId, body.type, body.correct, body.submitted, quizId, body.uid, body.score, body.points]);
+    await pool.query(insertSubmittedAnswerQuery, [
+      questionId,
+      body.type,
+      body.correct,
+      body.submitted,
+      quizId,
+      body.uid,
+      body.score,
+      body.points,
+    ]);
   } catch (err) {
     console.error(err.message);
     res.status(500).json({ error: "Server error submitting answer" });
