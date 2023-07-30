@@ -27,30 +27,32 @@ function Login() {
   const login = async () => {
     try {
       const user = await signInWithEmailAndPassword(auth, email, password);
-      await postRequestSubmit(await user.user.getIdToken(), user.user.email);
+      // await postRequestSubmit(await user.user.getIdToken(), user.user.email);
       navigate("/");
     } catch (error) {
       console.log(error.message);
+      alert("Login error: " + error.message);
+
     }
   };
 
-  const postRequestSubmit = async (idToken, firebaseEmail) => {
-    console.log(idToken);
-    const body = { token: idToken, email: firebaseEmail };
-    try {
-      const response = await fetch(`${apiUrl}/login`, {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(body),
-      });
-      console.log("Insert user result: ", response);
-    } catch (err) {
-      console.error(err.message);
-    }
-  };
+  // const postRequestSubmit = async (idToken, firebaseEmail) => {
+  //   console.log(idToken);
+  //   const body = { token: idToken, email: firebaseEmail };
+  //   try {
+  //     const response = await fetch(`${apiUrl}/login`, {
+  //       method: "POST",
+  //       headers: {
+  //         Accept: "application/json",
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify(body),
+  //     });
+  //     console.log("Insert user result: ", response);
+  //   } catch (err) {
+  //     console.error(err.message);
+  //   }
+  // };
 
   return (
     <form className="w-25 m-5 mx-auto" onSubmit={handleSubmit}>

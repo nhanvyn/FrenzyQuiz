@@ -17,6 +17,7 @@ const serviceAccount = require("./serviceAccountKey.json");
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
+const {verifyToken} = require('./verify')
 
 const io = new Server(server, {
   cors: {
@@ -274,7 +275,7 @@ app.post("/register", async (req, res) => {
   }
 });
 
-app.get("/users/:uid", async (req, res) => {
+app.get("/users/:uid", verifyToken, async (req, res) => {
   try {
     const { uid } = req.params;
     const getUserQuery = "SELECT * FROM users WHERE uid = $1;";
@@ -291,32 +292,25 @@ app.get("/users/:uid", async (req, res) => {
 });
 
 //login route
-var idTok;
-app.post("/login", async (req, res, next) => {
-  try {
-    const idToken = req.body.token.toString();
-    idTok = idToken;
-  } catch (err) {
-    console.error(err.message);
-  }
-  next();
-});
+// var idTok;
+// app.post("/login", async (req, res, next) => {
+//   try {
+//     const idToken = req.body.token.toString();
+//     idTok = idToken;
+//   } catch (err) {
+//     console.error(err.message);
+//   }
+//   next();
+// });
 
-app.get("/logout", async (req, res, next) => {
-  idTok = undefined;
-  res.send("Logout Successful");
-});
+// app.get("/logout", async (req, res, next) => {
+//   idTok = undefined;
+//   res.send("Logout Successful");
+// });
 
 //verify middleware
-async function verifyToken(req, res, next) {
-  try {
-    const decodeToken = await admin.auth().verifyIdToken(idTok);
-    console.log(decodeToken);
-    next();
-  } catch (err) {
-    res.status(401).send("You are not authorized");
-  }
-}
+
+
 
 //protected  route
 app.get("/protected", verifyToken, async (req, res) => {

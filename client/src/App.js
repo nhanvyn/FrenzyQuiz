@@ -35,7 +35,12 @@ function App() {
 
   const fetchUserData = async (uid) => {
     try {
-      const response = await fetch(`${apiUrl}/users/${uid}`);
+      const token = await auth.currentUser.getIdToken();
+      const response = await fetch(`${apiUrl}/users/${uid}`, {
+        headers: {
+          'Authorization': 'Bearer ' + token
+        }
+      });
       if (!response.ok) {
         console.log(
           "User information is not yet saved in database, wait for register..."

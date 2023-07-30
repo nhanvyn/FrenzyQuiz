@@ -18,13 +18,21 @@ function Register() {
 
   const getUserData = async (uid) => {
     try {
-      const response = await fetch(`${apiUrl}/users/${uid}`);
+      const token = await auth.currentUser.getIdToken();
+      const response = await fetch(`${apiUrl}/users/${uid}`, {
+        headers: {
+          'Authorization': 'Bearer ' + token
+        }
+      });
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        console.log(
+          "User information is not yet saved in database, wait for register..."
+        );
+      } else {
+        const userData = await response.json();
+        console.log("Register.js: user is ", userData);
+        setUser(userData);
       }
-      const userData = await response.json();
-      console.log("Register.js: user is ", userData)
-      setUser(userData);
     } catch (error) {
       console.error('An error occurred while fetching the user data:', error);
     }
