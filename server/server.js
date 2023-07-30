@@ -17,7 +17,7 @@ const serviceAccount = require("./serviceAccountKey.json");
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
-const {verifyToken} = require('./verify')
+const { verifyToken } = require("./verify");
 
 const io = new Server(server, {
   cors: {
@@ -310,8 +310,6 @@ app.get("/users/:uid", verifyToken, async (req, res) => {
 
 //verify middleware
 
-
-
 //protected  route
 app.get("/protected", verifyToken, async (req, res) => {
   res.send("protected");
@@ -411,16 +409,44 @@ app.post("/createQuestion", async (req, res) => {
       );
       console.log("tf");
     }
+    res.status(200).send("Status: OK");
+
+    console.log("question created");
   } catch (e) {
     console.log(e);
   }
 });
+app.delete("/deleteQuestion/:quizid/:qid/:type/:qnum", async (req, res) => {
+  console.log(req.params.quizid);
+  console.log(req.params.qid);
+  console.log(req.params.type);
+  console.log(req.params.qnum);
+  try {
+    if (req.params.type == "multiple") {
+      const mc = `DELETE FROM mclist WHERE quizid = $1 AND mid = $2`;
+      const delm = await pool.query(mc, [req.params.quizid, req.params.qid]);
+      console.log(delm);
+    } else if (req.params.type == "short") {
+      const short = `DELETE FROM slist WHERE quizid = $1 AND sid = $2`;
+      const dels = await pool.query(short, [req.params.quizid, req.params.qid]);
+      console.log(dels);
+    } else if (req.params.type == "tf") {
+      const tf = `DELETE FROM tflist WHERE quizid = $1 AND tfid = $2`;
+      const deltf = await pool.query(tf, [req.params.quizid, req.params.qid]);
+      console.log(deltf);
+    }
+    res.status(200).send("Status: OK");
+  } catch (e) {
+    console.log(e);
+  }
+});
+
 app.post("/update", async (req, res) => {
   try {
     let update;
 
     if (req.body.type == "multiple") {
-      const short = `UPDATE multiple SET
+      const mc = `UPDATE multiple SET
        question = $1, 
        answer = $2,
        option1 = $3,
@@ -430,7 +456,7 @@ app.post("/update", async (req, res) => {
        sec = $7, 
        points = $8 
        WHERE id = $9 `;
-      update = await pool.query(short, [
+      update = await pool.query(mc, [
         req.body.question,
         req.body.answer,
         req.body.o1,
@@ -462,7 +488,9 @@ app.post("/update", async (req, res) => {
       ]);
     }
   } catch (e) {
-    console.log(e);
+    res.status(500).json({
+      error: "Server Error deleting the question ",
+    });
   }
 });
 
@@ -622,7 +650,7 @@ app.get("/getQuizInfo/:uid/:qid", async (req, res) => {
     WHERE s.quizid = $2
     ORDER BY qnum;`;
     const result = await pool.query(query, [uid, qid]);
-    //get options if question type is multiple 
+    //get options if question type is multiple
     res.json(result.rows);
   } catch (err) {
     console.error(err.message);
@@ -646,7 +674,6 @@ app.get("/quizzes/:quizId", async (req, res) => {
   }
 });
 
-//delete quiz by id
 app.get("/quiz/:quidId/question/:questionNum", async (req, res) => {
   try {
     const params = req.params;
@@ -727,6 +754,7 @@ app.post("/quiz/:qid/question/:questionId/submitAnswer", async (req, res) => {
     res.status(500).json({ error: "Server error submitting answer" });
   }
 });
+//delete quiz by id
 
 app.delete("/quizzes/:quizId", async (req, res) => {
   try {

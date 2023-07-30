@@ -20,6 +20,24 @@ function Edit() {
     }
   };
 
+  const deleteQuestion = async (quizid, qid, type, qnum) => {
+    console.log(qnum);
+    try {
+      const response = await fetch(
+        `${apiUrl}/deleteQuestion/${quizid}/${qid}/${type}/${qnum}`,
+        {
+          method: "DELETE",
+        }
+      ).then((response) => {
+        console.log(response.status);
+        if (response.status == 200) {
+          setQuestion(questions.filter((q) => q.qnum !== qnum));
+        }
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  };
   useEffect(() => {
     fetchQuestions();
   }, []);
@@ -27,7 +45,7 @@ function Edit() {
     <>
       <div className="app">
         <div className="container w-75">
-          <h3 className="textcenter">{params.name}</h3>
+          <h3 className="textcenter">{"Editing: " + params.name}</h3>
           <div className="list-group">
             {questions.map((questions, index) => (
               <div
@@ -41,7 +59,14 @@ function Edit() {
                       type="button"
                       className="close"
                       aria-label="Close"
-                      onClick={() => alert("not implemented")}
+                      onClick={() =>
+                        deleteQuestion(
+                          questions.quizid,
+                          questions.id,
+                          questions.type,
+                          questions.qnum
+                        )
+                      }
                     >
                       <span aria-hidden="true">&times;</span>
                     </button>
@@ -67,6 +92,9 @@ function Edit() {
               </div>
             ))}
           </div>
+          <button className="btn btn-success " onClick={() => navigate(-1)}>
+            Finish Editing
+          </button>
         </div>
       </div>
     </>

@@ -48,24 +48,25 @@ CREATE TABLE IF NOT EXISTS mclist(
 	quizid int,
 	mid INT,
 	qnum INT,
-	FOREIGN KEY (mid) REFERENCES multiple(id),
-	FOREIGN KEY (quizid) REFERENCES quizzes(quizid),
+	FOREIGN KEY (mid) REFERENCES multiple(id) ON DELETE CASCADE,
+	FOREIGN KEY (quizid) REFERENCES quizzes(quizid) ON DELETE CASCADE,
 	PRIMARY KEY(quizid,mid)
 );
 CREATE TABLE IF NOT EXISTS slist(
 	quizid int,
 	sid INT,
 	qnum INT,
-	FOREIGN KEY (sid) REFERENCES short(id),
-	FOREIGN KEY (quizid) REFERENCES quizzes(quizid),
+	FOREIGN KEY (sid) REFERENCES short(id) ON DELETE CASCADE,
+	FOREIGN KEY (quizid) REFERENCES quizzes(quizid) ON DELETE CASCADE,
 	PRIMARY KEY(quizid,sid)
 );
+
 CREATE TABLE IF NOT EXISTS tflist(
 	quizid int,
 	tfid INT,
 	qnum INT,
-	FOREIGN KEY (tfid) REFERENCES tf(id),
-	FOREIGN KEY (quizid) REFERENCES quizzes(quizid),
+	FOREIGN KEY (tfid) REFERENCES tf(id) ON DELETE CASCADE,
+	FOREIGN KEY (quizid) REFERENCES quizzes(quizid) ON DELETE CASCADE,
 	PRIMARY KEY(quizid,tfid)
 )
 

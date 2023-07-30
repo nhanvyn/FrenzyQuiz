@@ -85,18 +85,16 @@ function CreateQuestion() {
     var data = JSON.stringify(input);
 
     try {
-      await fetch(`${apiUrl}/createQuestion`, {
+      const q = await fetch(`${apiUrl}/createQuestion`, {
         method: "POST",
         headers: {
           "Content-type": "application/json; charset=UTF-8",
         },
         body: data,
-      })
-        .then((response) => {
-          return response.json();
-        })
-        .then(console.log("Question added"))
-        .then(navigate(-1));
+      }).then((response) => {
+        console.log(response.status);
+        navigate(-1);
+      });
     } catch (err) {
       console.error(err.message);
     }
