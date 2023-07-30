@@ -623,8 +623,6 @@ app.get("/getQuizInfo/:uid/:qid", async (req, res) => {
     ORDER BY qnum;`;
     const result = await pool.query(query, [uid, qid]);
     //get options if question type is multiple 
-    const mcQuery = `SELECT * FROM multiple where id=$1`;
-    const mcResult = await pool.query(mcQuery, [])
     res.json(result.rows);
   } catch (err) {
     console.error(err.message);
