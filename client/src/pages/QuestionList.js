@@ -15,9 +15,13 @@ function QuesitonList() {
     try {
       const responsee = await fetch(`${apiUrl}/getQuestions/${params.id}`);
       const data = await responsee.json();
-      console.log("Fetched questions:", data[data.length - 1].qnum + 1);
+      //console.log("Fetched questions:", data[data.length - 1].qnum + 1);
       setQuestion(data);
-      setTotal(data[data.length - 1].qnum + 1);
+      if (data.length == 0) {
+        setTotal(0);
+      } else {
+        setTotal(data[data.length - 1].qnum + 1);
+      }
     } catch (err) {
       console.error(err);
     }
