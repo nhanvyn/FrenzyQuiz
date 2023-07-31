@@ -122,14 +122,7 @@ const QuizList = () => {
               <div className="d-flex w-100 justify-content-between">
                 <h5 className="mb-1">{quiz.tname}</h5>
                 <div>
-                  <button
-                    type="button"
-                    className="close"
-                    aria-label="Close"
-                    onClick={() => deleteQuiz(quiz.quizid)}
-                  >
-                    <span aria-hidden="true">&times;</span>
-                  </button>
+                 
                 </div>
               </div>
               <small>
