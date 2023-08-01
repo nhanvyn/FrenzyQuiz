@@ -597,8 +597,14 @@ app.get("/getTakenQuiz/:uid", async (req, res) => {
     const uid = req.params.uid;
     const getTakenQuiz = `
     SELECT s.quizid, q.tname, q.created, CONCAT(SUM(s.score), '/', SUM(s.points)) AS "score"
-      FROM submitted s
-      INNER JOIN quizzes q ON q.quizid = s.quizid AND s.uid = $1
+    FROM submitted s
+    INNER JOIN quizzes q ON q.quizid = s.quizid AND s.uid = $1
+    INNER JOIN (
+      SELECT DISTINCT quizid, MAX(id) AS max_id, questionid
+      FROM submitted
+      WHERE uid = $1
+      GROUP BY quizid, questionid
+    ) latest ON s.quizid = latest.quizid AND s.id = latest.max_id
     GROUP BY q.tname, q.created, s.quizid;`;
     //const getTakenQuiz = `SELECT * from submitted;`
     const result = await pool.query(getTakenQuiz, [uid]);
