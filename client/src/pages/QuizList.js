@@ -13,7 +13,6 @@ const QuizList = () => {
   useEffect(() => {
     // need to retrieve all quizzes here
     const fetchQuizzes = async () => {
-      console.log(socket, user)
       try {
         const responsee = await fetch(`${apiUrl}/getCreatedQuiz/${user.uid}`);
         const data = await responsee.json();

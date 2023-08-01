@@ -767,7 +767,7 @@ app.post("/quiz/:qid/question/:questionId/submitAnswer", async (req, res, next) 
       body.score,
       body.points,
     ]);
-    next();
+    res.status(200).send("Status: OK");
   } catch (err) {
     console.error(err.message);
     res.status(500).json({ error: "Server error submitting answer" });
