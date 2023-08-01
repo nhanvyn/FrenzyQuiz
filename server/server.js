@@ -737,7 +737,7 @@ app.get("/quiz/:quidId/question/:questionNum", async (req, res) => {
   }
 });
 
-app.post("/quiz/:qid/question/:questionId/submitAnswer", async (req, res) => {
+app.post("/quiz/:qid/question/:questionId/submitAnswer", async (req, res, next) => {
   try {
     var quizId = req.params.qid;
     var questionId = req.params.questionId;
@@ -757,6 +757,7 @@ app.post("/quiz/:qid/question/:questionId/submitAnswer", async (req, res) => {
       body.score,
       body.points,
     ]);
+    next();
   } catch (err) {
     console.error(err.message);
     res.status(500).json({ error: "Server error submitting answer" });
