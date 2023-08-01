@@ -203,6 +203,9 @@ io.on("connection", (socket) => {
     var index = rooms[data.quizid].currentQuestionIndex;
     var correct_answer = rooms[data.quizid].questions[index].answer;
     var correct = data.submitted === correct_answer;
+    if (data.type === "short"){
+      correct = data.submitted.toLowerCase().trim() === correct_answer.toLowerCase().trim();
+    }
     var points = correct ? rooms[data.quizid].questions[index].points : 0;
     console.log("show question detail", rooms[data.quizid].questions[index]);
 
