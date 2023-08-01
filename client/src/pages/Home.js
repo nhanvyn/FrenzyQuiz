@@ -46,7 +46,7 @@ const HomePage = () => {
   return (
     <div className="container w-75 d-flex flex-column align-items-center justify-content-center mt-4">
 
-      {currentRoom ? (
+      {currentRoom && currentRoom.status === "waiting" ? (
         <>
           <h3>Current quizz</h3>
           <div className="card" style={{ width: "18rem" }}>
@@ -66,8 +66,36 @@ const HomePage = () => {
             </div>
           </div>
         </>
-      ) : (
+      ) : currentRoom && currentRoom.status === "in progress"  ? (
+        <>
+          <h3>Current quizz</h3>
+          <div className="card" style={{ width: "18rem" }}>
+            <div className="card-body">
+              <h5 className="card-title">{currentRoom.quiz.tname}</h5>
+              <small className="mb-1">id: {currentRoom.quiz.quizid} </small> <br></br>
+              <small>Date:  {new Date(currentRoom.quiz.created).toISOString().split('T')[0]}</small>
+              <div className='d-flex'>
+                <button 
+                    type="button" 
+                    name="edit" 
+                    className="btn btn-success btn-sm mt-2" 
+                    onClick={() => alert("Room is already in progress, not allow to join")}
+                >
+                    Room is already in progress
+                </button>
+                {currentRoom.quiz.uid === user.uid ? (
+                  <button type="button" name="start" className="btn btn-danger btn-sm mt-2 ml-2" onClick={() => deleteRoom()}>Delete room</button>
+                ): (
+                    <button type = "button" name = "start" className = "btn btn-danger btn-sm mt-2 ml-2" onClick={() => leaveRoom()}>Leave</button>
+                  )}
+              </div>
+            </div>
+          </div>
+        </>
+      ): (
+        <>
         <h3>Current waiting room will display here if you are in a waiting room for a quiz</h3>
+        </>
       )}
 
 

@@ -7,7 +7,8 @@ const { Server } = require("socket.io");
 const cors = require("cors");
 const app = express();
 dotenv.config();
-app.use(cors());
+const allowedOrigins = ["http://localhost:3000", "http://104.197.136.104", "http://localhost:3500"]; 
+app.use(cors({ origin: allowedOrigins }));
 app.use(express.json());
 
 const server = http.createServer(app);
@@ -21,7 +22,7 @@ const { verifyToken } = require("./verify");
 
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: "*",
   },
 });
 
@@ -155,7 +156,7 @@ io.on("connection", (socket) => {
   async function fetchQuestions(quizId) {
     try {
       const response = await axios.get(
-        `http://localhost:3500/questions/${quizId}`
+        `http://127.0.0.1:3500/questions/${quizId}`
       );
       return response.data;
     } catch (error) {
@@ -171,6 +172,7 @@ io.on("connection", (socket) => {
       .then((questions) => {
         rooms[data.quizId].questions = questions.sortedQuestions;
         rooms[data.quizId].currentQuestionIndex = 0;
+        rooms[data.quizId].status = "in progress"
         // send the first question
         console.log(
           "send the first question:",
@@ -311,7 +313,7 @@ app.get("/users/:uid", verifyToken, async (req, res) => {
 //verify middleware
 
 //protected  route
-app.get("/protected", verifyToken, async (req, res) => {
+app.get("/protected", async (req, res) => {
   res.send("protected");
 });
 
@@ -876,7 +878,7 @@ app.get("/questions/:quizid", async (req, res) => {
   }
 });
 
-server.listen(port, () => {
+server.listen(port, '0.0.0.0', () => {
   console.log(`Server is running at http://localhost:${port}`);
   console.log(process.env.DB_USER);
 });
