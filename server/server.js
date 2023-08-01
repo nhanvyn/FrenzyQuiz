@@ -53,6 +53,10 @@ io.on("connection", (socket) => {
       `User: ${data.email} connect_id: ${socket.id} joined room ${data.quizId}`
     );
     // attach player's socket connection to this room
+    if (data.email === "Anonymous"){
+      console.log("redundant connection detected")
+      return;
+    }
     socket.join(data.quizId);
 
     // if this is the first time the room is created, init empty players array and attach quiz data to this room
@@ -167,6 +171,9 @@ io.on("connection", (socket) => {
 
   socket.on("start_quiz", async (data) => {
     console.log("start quiz receiverd");
+    rooms[data.quizId].players = rooms[data.quizId].players.filter(
+      (player) => player.email !== "Anonymous"
+    );
     // init the room[data.quizid].questions with questions retrieve from db
     fetchQuestions(data.quizId)
       .then((questions) => {
@@ -196,6 +203,9 @@ io.on("connection", (socket) => {
     var index = rooms[data.quizid].currentQuestionIndex;
     var correct_answer = rooms[data.quizid].questions[index].answer;
     var correct = data.submitted === correct_answer;
+    if (data.type === "short"){
+      correct = data.submitted.toLowerCase().trim() === correct_answer.toLowerCase().trim();
+    }
     var points = correct ? rooms[data.quizid].questions[index].points : 0;
     console.log("show question detail", rooms[data.quizid].questions[index]);
 
