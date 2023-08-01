@@ -4,6 +4,7 @@ import QRCode from 'qrcode.react';
 import { SocketContext, UserContext, QuizContext} from '../App';
 import { useNavigate } from 'react-router-dom';
 import apiUrl from "../api-config";
+import { NavLink } from "react-router-dom";
 
 const Room = () => {
   const navigate = useNavigate();
@@ -13,6 +14,7 @@ const Room = () => {
   const socket = useContext(SocketContext)
   const {user} = useContext(UserContext)
   const {currentQuestion, setCurrentQuestion} = useContext(QuizContext)
+  const [clientURL, setClientURL] = useState("http://localhost:3000")
 
   const startQuiz = (quizId) => {
     socket.emit('start_quiz', {quizId: Number(quizId)})
@@ -23,6 +25,9 @@ const Room = () => {
 
   // this hook is for fetching quiz information
   useEffect(() => {
+    if (apiUrl === "http://104.197.136.104:3500"){
+      setClientURL("http://104.197.136.104")
+    }
     const fetchQuizData = async () => {
       try {
         const response = await fetch(`${apiUrl}/quizzes/${id}`);
@@ -90,17 +95,27 @@ const Room = () => {
 
 
   return (
-    <div className="container">
+    user === null ? (
+      <div className="d-flex flex-column justify-content-center align-items-center">
+        <h1>Join a quiz</h1>
+        <NavLink activeclassname="active" className="nav-link" to="/Register">
+          <button className="btn btn-primary mt-2">
+            Please login or create an account before taking the quiz
+          </button>
+        </NavLink>
+    </div>
+    ): (
+      <div className="container">
       <div className="row">
         <div className="col-lg-6 col-md-12">
           <h3> {"Quiz id:" + quiz?.quizid + " - " + " question: " + quiz?.tname}</h3>
-          <QRCode value={`http://localhost:3000/Room/${id}`} size={256*2} />
-          {quiz?.uid === user.uid ? (
+          <QRCode value={`${clientURL}/Room/${id}`} size={256*2} />
+          {quiz?.uid === user?.uid ? (
             <button onClick={() => startQuiz(id)} className="btn btn-success btn-block mb-4">
             Start the quiz
           </button>
           ) : (<>
-          
+            <p>wait for host to start the quiz</p>
           </>)}
           
         </div>
@@ -115,6 +130,7 @@ const Room = () => {
         </div>
       </div>
     </div>
+    )
   );
 }
 
