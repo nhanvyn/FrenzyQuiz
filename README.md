@@ -42,12 +42,13 @@ FrenzyQuiz is an real-time interactive quiz platform that enables users to creat
 - PostgreSQL installed and running
 - Firebase project set up
 
-### Running the Client
+### Running the Server and Client
+```bash
+cd server
+npm install
+npm run dev
+
 cd client
 npm install
 npm start
 
-### Running the Server
-cd server
-npm install
-npm run dev
