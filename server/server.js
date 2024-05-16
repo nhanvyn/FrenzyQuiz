@@ -620,7 +620,7 @@ app.get("/getTakenQuiz/:uid", async (req, res) => {
     const result = await pool.query(getTakenQuiz, [uid]);
     res.json(result.rows);
   } catch (err) {
-    console.error(err.message);
+    console.error("getTakenQuiz Error: ", err.message);
   }
 });
 
@@ -891,7 +891,7 @@ app.get("/questions/:quizid", async (req, res) => {
     res.status(200).json(quizData);
   } catch (error) {
     console.log(error);
-    res.status(500).json({ message: "Server error", error: error.toString() });
+    res.status(500).json({ message: "Server fetching question error", error: error.toString() });
   }
 });
 

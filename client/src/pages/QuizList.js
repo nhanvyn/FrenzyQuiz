@@ -19,7 +19,7 @@ const QuizList = () => {
         console.log("Fetched quizzes:", data);
         setQuizzes(data);
       } catch (err) {
-        console.error(err);
+        console.error("Error fetching quizzes:", err.message);
       }
     };
 
