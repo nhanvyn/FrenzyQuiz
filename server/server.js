@@ -61,9 +61,8 @@ io.on("connection", (socket) => {
 
     // if this is the first time the room is created, init empty players array and attach quiz data to this room
     if (!rooms[data.quizId]) {
-      // const quiz = quizzes.find((quiz) => quiz.id == data.quizId); // this will be replace with endpoint to database later
       rooms[data.quizId] = {
-        players: [],
+        players: [],  
         quiz: data.quiz,
         status: "waiting",
         questions: [],
@@ -147,7 +146,7 @@ io.on("connection", (socket) => {
     delete rooms[data.quizId];
   });
 
-  // check if a room exist before joining player
+    // check if a room exist before joining player
   socket.on("check_room_exists", (data) => {
     if (rooms[data.quizId]) {
       socket.emit("room_exists", true);
@@ -169,6 +168,7 @@ io.on("connection", (socket) => {
     }
   }
 
+  // When the host start the quiz
   socket.on("start_quiz", async (data) => {
     console.log("start quiz receiverd");
     rooms[data.quizId].players = rooms[data.quizId].players.filter(
@@ -196,6 +196,8 @@ io.on("connection", (socket) => {
       });
   });
 
+
+  // When Student submit the answers
   socket.on("submit", async (data) => {
     // check if all answers are submitted
 
@@ -247,6 +249,7 @@ io.on("connection", (socket) => {
     }
   });
 
+  // When the host press the next question button 
   socket.on("next_question", (data) => {
     rooms[data.quizid].currentQuestionIndex += 1;
     var index = rooms[data.quizid].currentQuestionIndex;
