@@ -37,8 +37,6 @@ const Quiz = () => {
         socket.emit('next_question', {quizid: Number(id)})
     }
 
-    
-
     const exitQuiz = () => {
         if (creator){
             socket.emit('delete_room', { email: user.email, quizId: Number(id) })
@@ -48,7 +46,6 @@ const Quiz = () => {
         else {
             socket.emit('leave_room', { email: user.email, quizId: Number(id) })
             navigate(`/`)
-
         }
     }
 
@@ -133,7 +130,6 @@ const Quiz = () => {
             socket.on("show_answer", handleShowAnswer);
             socket.on("show_leaderboard", handleShowLeaderboard);
             socket.on("show_stat", handleShowStat);
-            socket.on("crazy_test", handleCrazyTest);
             
 
             return () => {
@@ -141,8 +137,7 @@ const Quiz = () => {
               socket.off('show_answer', handleShowAnswer);
               socket.off('show_leaderboard', handleShowLeaderboard);
               socket.off('show_stat', handleShowStat)
-              socket.off('crazy_test', handleCrazyTest);
-              console.log("Called")
+              console.log("Quiz.js: Handle next questions")
             };
           }
     },[socket, id, creator, currentQuestion, user.uid, setCurrentQuestion, leaderboardData, user.email])
@@ -231,24 +226,24 @@ const Quiz = () => {
             {showStat ? (
                 <>
                 <Leaderboard leaderboardData={leaderboardData} />
-                <div className='container'>
-                    {!creator? (<><h1>Your points:  {leaderboardData[user.email]?.score}</h1></>):(<></>)}
-                    {!creator? (<><h1>Your place:  {rank} out of {Object.keys(leaderboardData).length}</h1></>):(<></>)}
-                    <h1>Class average: {mean}</h1>
-                    <button className='btn btn-primary btn-lg'  onClick={() => exitQuiz()}>Exit</button>
-                </div>
+                    <div className='container'>
+                        {!creator? (<><h1>Your points:  {leaderboardData[user.email]?.score}</h1></>):(<></>)}
+                        {!creator? (<><h1>Your place:  {rank} out of {Object.keys(leaderboardData).length}</h1></>):(<></>)}
+                        <h1>Class average: {mean}</h1>
+                        <button className='btn btn-primary btn-lg'  onClick={() => exitQuiz()}>Exit</button>
+                    </div>
                 </>
             ) : showLeaderboard ? (
                 <>
-                <Leaderboard leaderboardData={leaderboardData} />
-                <div className='d-flex justify-content-center'>
-                    <button className='btn btn-primary btn-lg'  onClick={() => goToNextQuestion()}>Next question</button>
-                </div>
+                    <Leaderboard leaderboardData={leaderboardData} />
+                    <div className='d-flex justify-content-center'>
+                        <button className='btn btn-primary btn-lg'  onClick={() => goToNextQuestion()}>Next question</button>
+                    </div>
                 </>
             ) : showAnswer ? (
                 <>
-                <h1 className="d-flex justify-content-center">Correct Answer is {currentAnswer} </h1>
-                <h1 className="d-flex justify-content-center">Your points: {leaderboardData[user.email]?.score}  </h1>
+                    <h1 className="d-flex justify-content-center">Correct Answer is {currentAnswer} </h1>
+                    <h1 className="d-flex justify-content-center">Your points: {leaderboardData[user.email]?.score}  </h1>
                 </>
             ) : (
                 <>
