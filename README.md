@@ -28,12 +28,6 @@ FrenzyQuiz is an real-time interactive quiz platform that enables users to creat
 - **Authentication**: Firebase Authentication
 - **Hosting**: GCP Windows-based virtual machine
 
-## Database Schema
-
-- **Users**: `uid, role, email, fname, lname`
-- **Quizzes**: `quizid, tname, created, uid`
-- **Question and Answer Models** for multiple-choice, true/false, and short-answer questions.
-
 ## Running the Application
 
 ### Prerequisites
