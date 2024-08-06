@@ -293,7 +293,7 @@ app.post("/register", async (req, res) => {
 app.get("/users/:uid", verifyToken, async (req, res) => {
   try {
     const { uid } = req.params;
-    const getUserQuery = "SELECT * FROM users WHERE uid = $1;";
+    const createQuestiongetUserQuery = "SELECT * FROM users WHERE uid = $1;";
     const result = await pool.query(getUserQuery, [uid]);
     if (result.rows.length > 0) {
       res.json(result.rows[0]);
@@ -358,6 +358,7 @@ app.post("/createQuiz", async (req, res) => {
 //adding a question
 app.post("/createQuestion", async (req, res) => {
   try {
+    let questionResponse;
     if (req.body.type == "multiple") {
       const mc = await pool.query(
         `INSERT INTO multiple
@@ -381,7 +382,7 @@ app.post("/createQuestion", async (req, res) => {
       VALUES ($1,$2,$3) RETURNING *`,
         [req.body.id, mc.rows[0]["id"], req.body.qnum]
       );
-
+      questionResponse = { ...mc.rows[0], quizid: req.body.id, qnum: req.body.qnum };
       console.log("multiple");
     } else if (req.body.type == "short") {
       const short = await pool.query(
@@ -403,6 +404,7 @@ app.post("/createQuestion", async (req, res) => {
         [req.body.id, short.rows[0]["id"], req.body.qnum]
       );
       console.log("short");
+      questionResponse = { ...short.rows[0], quizid: req.body.id, qnum: req.body.qnum };
     } else if (req.body.type == "tf") {
       const tf = await pool.query(
         `INSERT INTO tf
@@ -422,9 +424,10 @@ app.post("/createQuestion", async (req, res) => {
       VALUES ($1,$2,$3) RETURNING *`,
         [req.body.id, tf.rows[0]["id"], req.body.qnum]
       );
+      questionResponse = { ...tf.rows[0], quizid: req.body.id, qnum: req.body.qnum };
       console.log("tf");
     }
-    res.status(200).send("Status: OK");
+     res.status(200).json(questionResponse);
 
     console.log("question created");
   } catch (e) {
@@ -902,3 +905,5 @@ server.listen(port, '0.0.0.0', () => {
   console.log(`Server is running at http://localhost:${port}`);
   console.log(process.env.DB_USER);
 });
+
+module.exports = { app, pool };

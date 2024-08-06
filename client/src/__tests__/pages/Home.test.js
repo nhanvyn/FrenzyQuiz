@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { render, screen,  fireEvent, waitFor  } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor  } from '@testing-library/react';
 // import '@testing-library/jest-dom/extend-expect'; // for the custom matchers like toBeInTheDocument
 import '@testing-library/jest-dom'
 import Home from '../../pages/Home';

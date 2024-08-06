@@ -52,7 +52,7 @@ function Register() {
         email,
         password
       );
-
+      
       const regBody = {
         userid: userCredential.user.uid,
         userEmail: email,
