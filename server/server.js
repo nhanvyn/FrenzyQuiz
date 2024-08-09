@@ -13,11 +13,16 @@ app.use(express.json());
 
 const server = http.createServer(app);
 
+
+// configure firebase admin
 const admin = require("firebase-admin");
-const serviceAccount = require("./serviceAccountKey.json");
+const serviceAccountBase64 = process.env.FIREBASE_SERVICE_ACCOUNT_BASE64;
+// console.log("serviceAccountBase64 = ", JSON.parse(Buffer.from(serviceAccountBase64, 'base64').toString('utf-8')));
+const serviceAccount = JSON.parse(Buffer.from(serviceAccountBase64, 'base64').toString('utf-8'));
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
+
 const { verifyToken } = require("./verify");
 
 const io = new Server(server, {
@@ -293,7 +298,7 @@ app.post("/register", async (req, res) => {
 app.get("/users/:uid", verifyToken, async (req, res) => {
   try {
     const { uid } = req.params;
-    const createQuestiongetUserQuery = "SELECT * FROM users WHERE uid = $1;";
+    const getUserQuery = "SELECT * FROM users WHERE uid = $1;";
     const result = await pool.query(getUserQuery, [uid]);
     if (result.rows.length > 0) {
       res.json(result.rows[0]);
@@ -306,28 +311,8 @@ app.get("/users/:uid", verifyToken, async (req, res) => {
   }
 });
 
-//login route
-// var idTok;
-// app.post("/login", async (req, res, next) => {
-//   try {
-//     const idToken = req.body.token.toString();
-//     idTok = idToken;
-//   } catch (err) {
-//     console.error(err.message);
-//   }
-//   next();
-// });
-
-// app.get("/logout", async (req, res, next) => {
-//   idTok = undefined;
-//   res.send("Logout Successful");
-// });
-
-//verify middleware
-
-//protected  route
-app.get("/protected", async (req, res) => {
-  res.send("protected");
+app.get("/nothing", async (req, res) => {
+  res.send("nothing");
 });
 
 app.post("/createQuiz", async (req, res) => {
