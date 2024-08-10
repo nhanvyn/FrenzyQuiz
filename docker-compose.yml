@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  client:
+    image: nhanvyn/frenzyquiz-client:latest
+    ports:
+      - "3000:3000"
+    depends_on:
+      - server
+
+  server:
+    image: nhanvyn/frenzyquiz-server:latest
+    ports:
+      - "3500:3500"
+    environment:
+      DB_USER: ${DB_USER}
+      DB_HOST: ${DB_HOST}
+      DB_DATABASE: ${DB_DATABASE}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_PORT: ${DB_PORT}
+      FIREBASE_SERVICE_ACCOUNT_BASE64: ${FIREBASE_SERVICE_ACCOUNT_BASE64}
